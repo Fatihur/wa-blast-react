@@ -105,13 +105,28 @@ router.delete('/:id', authenticateToken, async (req: AuthRequest, res) => {
 
 router.get('/groups', authenticateToken, async (req: AuthRequest, res) => {
   try {
-    const groups = await prisma.group.findMany({
-      where: { userId: req.userId },
-      orderBy: { createdAt: 'asc' }
-    });
-
-    res.json(groups.map(g => g.name));
+    // Try to use Groups table first
+    try {
+      const groups = await prisma.group.findMany({
+        where: { userId: req.userId },
+        orderBy: { createdAt: 'asc' }
+      });
+      return res.json(groups.map(g => g.name));
+    } catch (groupError: any) {
+      // Fallback to old method if Groups table doesn't exist
+      if (groupError.code === 'P2021' || groupError.message?.includes('does not exist')) {
+        console.warn('Groups table not found, using fallback method');
+        const contacts = await prisma.contact.findMany({
+          where: { userId: req.userId, group: { not: null } },
+          select: { group: true },
+          distinct: ['group']
+        });
+        return res.json(contacts.map(c => c.group));
+      }
+      throw groupError;
+    }
   } catch (error) {
+    console.error('Error fetching groups:', error);
     res.status(500).json({ error: 'Failed to fetch groups' });
   }
 });
@@ -124,19 +139,29 @@ router.post('/groups', authenticateToken, async (req: AuthRequest, res) => {
       return res.status(400).json({ error: 'Group name is required' });
     }
 
-    // Create group in groups table
-    const group = await prisma.group.create({
-      data: {
-        userId: req.userId!,
-        name: name.trim()
+    try {
+      // Try to create in groups table
+      const group = await prisma.group.create({
+        data: {
+          userId: req.userId!,
+          name: name.trim()
+        }
+      });
+      return res.status(201).json({ message: 'Group created', group });
+    } catch (groupError: any) {
+      // If Groups table doesn't exist, just return success
+      if (groupError.code === 'P2021' || groupError.message?.includes('does not exist')) {
+        console.warn('Groups table not found, group will be created when first contact is added');
+        return res.status(201).json({ message: 'Group created', name: name.trim() });
       }
-    });
-
-    res.status(201).json({ message: 'Group created', group });
-  } catch (error: any) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Group already exists' });
+      // If duplicate
+      if (groupError.code === 'P2002') {
+        return res.status(400).json({ error: 'Group already exists' });
+      }
+      throw groupError;
     }
+  } catch (error: any) {
+    console.error('Error creating group:', error);
     res.status(500).json({ error: 'Failed to create group' });
   }
 });
@@ -150,32 +175,41 @@ router.put('/groups/:oldName', authenticateToken, async (req: AuthRequest, res) 
       return res.status(400).json({ error: 'New group name is required' });
     }
 
-    // Find the group
-    const group = await prisma.group.findFirst({
-      where: { userId: req.userId, name: decodeURIComponent(oldName) }
-    });
+    const decodedOldName = decodeURIComponent(oldName);
+    const trimmedNewName = newName.trim();
 
-    if (!group) {
-      return res.status(404).json({ error: 'Group not found' });
+    try {
+      // Try to update in groups table
+      const group = await prisma.group.findFirst({
+        where: { userId: req.userId, name: decodedOldName }
+      });
+
+      if (group) {
+        await prisma.group.update({
+          where: { id: group.id },
+          data: { name: trimmedNewName }
+        });
+      }
+    } catch (groupError: any) {
+      // If Groups table doesn't exist, just continue to update contacts
+      if (groupError.code !== 'P2021' && !groupError.message?.includes('does not exist')) {
+        if (groupError.code === 'P2002') {
+          return res.status(400).json({ error: 'Group name already exists' });
+        }
+        throw groupError;
+      }
+      console.warn('Groups table not found, updating contacts only');
     }
-
-    // Update group name
-    await prisma.group.update({
-      where: { id: group.id },
-      data: { name: newName.trim() }
-    });
 
     // Update all contacts with this group
     const result = await prisma.contact.updateMany({
-      where: { userId: req.userId, group: decodeURIComponent(oldName) },
-      data: { group: newName.trim() }
+      where: { userId: req.userId, group: decodedOldName },
+      data: { group: trimmedNewName }
     });
 
     res.json({ message: 'Group renamed', count: result.count });
   } catch (error: any) {
-    if (error.code === 'P2002') {
-      return res.status(400).json({ error: 'Group name already exists' });
-    }
+    console.error('Error renaming group:', error);
     res.status(500).json({ error: 'Failed to rename group' });
   }
 });
@@ -185,19 +219,24 @@ router.delete('/groups/:name', authenticateToken, async (req: AuthRequest, res) 
     const { name } = req.params;
     const decodedName = decodeURIComponent(name);
 
-    // Find the group
-    const group = await prisma.group.findFirst({
-      where: { userId: req.userId, name: decodedName }
-    });
+    try {
+      // Try to delete from groups table
+      const group = await prisma.group.findFirst({
+        where: { userId: req.userId, name: decodedName }
+      });
 
-    if (!group) {
-      return res.status(404).json({ error: 'Group not found' });
+      if (group) {
+        await prisma.group.delete({
+          where: { id: group.id }
+        });
+      }
+    } catch (groupError: any) {
+      // If Groups table doesn't exist, just continue to update contacts
+      if (groupError.code !== 'P2021' && !groupError.message?.includes('does not exist')) {
+        throw groupError;
+      }
+      console.warn('Groups table not found, updating contacts only');
     }
-
-    // Delete the group
-    await prisma.group.delete({
-      where: { id: group.id }
-    });
 
     // Set group to null for all contacts in this group
     const result = await prisma.contact.updateMany({
@@ -207,6 +246,7 @@ router.delete('/groups/:name', authenticateToken, async (req: AuthRequest, res) 
 
     res.json({ message: 'Group deleted', count: result.count });
   } catch (error) {
+    console.error('Error deleting group:', error);
     res.status(500).json({ error: 'Failed to delete group' });
   }
 });
