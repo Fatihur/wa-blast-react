@@ -9,7 +9,8 @@ import {
   Menu,
   ChevronLeft,
   ChevronRight,
-  User
+  User,
+  Info
 } from 'lucide-react';
 import { useAuthStore } from '@/store/authStore';
 import { Button } from './ui/button';
@@ -61,14 +62,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <MessageSquare className="h-5 w-5 text-primary-foreground" />
                 </div>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="lg:hidden"
-                onClick={() => setSidebarOpen(false)}
-              >
-                <Menu className="h-5 w-5" />
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hidden lg:flex hover:bg-primary/10 transition-colors"
+                  onClick={() => setCollapsed(!collapsed)}
+                  title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                >
+                  {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="lg:hidden"
+                  onClick={() => setSidebarOpen(false)}
+                >
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </div>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -95,16 +107,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               })}
             </nav>
 
-            <div className="p-4 border-t bg-muted/30 space-y-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setCollapsed(!collapsed)}
-                className="w-full hidden lg:flex items-center justify-center gap-2"
-              >
-                {collapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-                {!collapsed && <span className="text-xs">Collapse</span>}
-              </Button>
+            <div className="p-4 border-t bg-muted/30">
+              {!collapsed ? (
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3 px-2">
+                    <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
+                    <div className="space-y-1 text-xs">
+                      <p className="font-semibold text-foreground">WA Blast App</p>
+                      <p className="text-muted-foreground">Version 1.2.0</p>
+                      <p className="text-muted-foreground leading-relaxed">
+                        Bulk WhatsApp messaging platform with advanced features
+                      </p>
+                    </div>
+                  </div>
+                  <div className="px-2 pt-2 border-t">
+                    <p className="text-[10px] text-muted-foreground">
+                      © 2024 WA Blast. All rights reserved.
+                    </p>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center" title="WA Blast v1.2.0">
+                  <Info className="h-5 w-5 text-muted-foreground" />
+                </div>
+              )}
             </div>
           </div>
         </aside>
