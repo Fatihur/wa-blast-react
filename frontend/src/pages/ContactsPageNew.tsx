@@ -230,15 +230,15 @@ export default function ContactsPageNew() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-            Contacts
+            Kontak
           </h1>
-          <p className="text-muted-foreground mt-1">Manage your WhatsApp contacts</p>
+          <p className="text-muted-foreground mt-1">Kelola kontak WhatsApp Anda</p>
         </div>
         <div className="flex gap-2">
           <label htmlFor="import-file" className="cursor-pointer">
             <Button variant="outline" className="gap-2" type="button">
               <Upload className="h-4 w-4" />
-              Import CSV
+              Impor CSV
             </Button>
           </label>
           <input
@@ -253,7 +253,7 @@ export default function ContactsPageNew() {
             onClick={() => setShowAddModal(true)}
           >
             <Plus className="h-4 w-4" />
-            Add Contact
+            Tambah Kontak
           </Button>
         </div>
       </div>
@@ -263,11 +263,11 @@ export default function ContactsPageNew() {
         <TabsList>
           <TabsTrigger value="contacts" className="gap-2">
             <Users className="h-4 w-4" />
-            Contacts
+            Kontak
           </TabsTrigger>
           <TabsTrigger value="groups" className="gap-2">
             <FolderOpen className="h-4 w-4" />
-            Groups
+            Grup
           </TabsTrigger>
         </TabsList>
 
@@ -279,14 +279,14 @@ export default function ContactsPageNew() {
               <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <CardTitle className="flex items-center gap-2">
                   <Users className="h-5 w-5" />
-                  {selectedGroup === 'all' ? 'All Contacts' : selectedGroup}
+                  {selectedGroup === 'all' ? 'Semua Kontak' : selectedGroup}
                   <Badge variant="secondary">{filteredContacts?.length || 0}</Badge>
                 </CardTitle>
                 <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                   <div className="relative flex-1 sm:w-64">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <Input
-                      placeholder="Search contacts..."
+                      placeholder="Cari kontak..."
                       className="pl-9"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
@@ -297,7 +297,7 @@ export default function ContactsPageNew() {
                     value={selectedGroup}
                     onChange={(e) => setSelectedGroup(e.target.value)}
                   >
-                    <option value="all">All Groups ({contacts?.length || 0})</option>
+                    <option value="all">Semua Grup ({contacts?.length || 0})</option>
                     {groups?.map((group: string) => (
                       <option key={group} value={group}>
                         {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
@@ -309,17 +309,17 @@ export default function ContactsPageNew() {
             </CardHeader>
             <CardContent>
               {isLoading ? (
-                <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
+                <p className="text-center text-muted-foreground py-8">Memuat kontak...</p>
               ) : filteredContacts?.length === 0 ? (
-                <p className="text-center text-muted-foreground py-8">No contacts found</p>
+                <p className="text-center text-muted-foreground py-8">Tidak ada kontak</p>
               ) : (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
+                      <TableHead>Nama</TableHead>
+                      <TableHead>Telepon</TableHead>
+                      <TableHead>Grup</TableHead>
+                      <TableHead className="text-right">Aksi</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -331,7 +331,7 @@ export default function ContactsPageNew() {
                           {contact.group ? (
                             <Badge variant="outline">{contact.group}</Badge>
                           ) : (
-                            <span className="text-muted-foreground text-sm">No group</span>
+                            <span className="text-muted-foreground text-sm">Tanpa grup</span>
                           )}
                         </TableCell>
                         <TableCell className="text-right">
@@ -370,14 +370,14 @@ export default function ContactsPageNew() {
               <div className="flex items-center justify-between">
                 <CardTitle className="flex items-center gap-2">
                   <FolderOpen className="h-5 w-5" />
-                  Manage Groups
+                  Kelola Grup
                 </CardTitle>
                 <Button 
                   onClick={() => setShowGroupModal(true)}
                   className="gap-2"
                 >
                   <Plus className="h-4 w-4" />
-                  Add Group
+                  Tambah Grup
                 </Button>
               </div>
             </CardHeader>
@@ -387,7 +387,7 @@ export default function ContactsPageNew() {
                   <div className="text-center py-12">
                     <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <p className="text-muted-foreground mb-4">
-                      No groups yet. Create a group to organize your contacts.
+                      Belum ada grup. Buat grup untuk mengorganisir kontak Anda.
                     </p>
                     <Button 
                       onClick={() => setShowGroupModal(true)}
@@ -395,7 +395,7 @@ export default function ContactsPageNew() {
                       className="gap-2"
                     >
                       <Plus className="h-4 w-4" />
-                      Create First Group
+                      Buat Grup Pertama
                     </Button>
                   </div>
                 ) : (
@@ -410,7 +410,7 @@ export default function ContactsPageNew() {
                                 <div className="space-y-1 flex-1">
                                   <h3 className="font-semibold text-lg">{group}</h3>
                                   <p className="text-sm text-muted-foreground">
-                                    {groupCount} contact{groupCount !== 1 ? 's' : ''}
+                                    {groupCount} kontak
                                   </p>
                                 </div>
                                 <Badge variant="secondary" className="text-lg">
@@ -425,7 +425,7 @@ export default function ContactsPageNew() {
                                   className="flex-1 gap-2"
                                 >
                                   <Edit className="h-3 w-3" />
-                                  Edit
+                                  Ubah
                                 </Button>
                                 <Button
                                   variant="outline"
@@ -434,7 +434,7 @@ export default function ContactsPageNew() {
                                   className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive"
                                 >
                                   <Trash2 className="h-3 w-3" />
-                                  Delete
+                                  Hapus
                                 </Button>
                               </div>
                             </div>
@@ -455,21 +455,21 @@ export default function ContactsPageNew() {
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle className="text-2xl">
-                  {editContact ? 'Edit Contact' : 'Add New Contact'}
+                  {editContact ? 'Ubah Kontak' : 'Tambah Kontak Baru'}
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Full Name</Label>
+                  <Label htmlFor="name">Nama Lengkap</Label>
                   <Input
                     id="name"
-                    placeholder="John Doe"
+                    placeholder="Nama Lengkap"
                     value={newContact.name}
                     onChange={(e) => setNewContact({ ...newContact, name: e.target.value })}
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="phone">Phone Number</Label>
+                  <Label htmlFor="phone">Nomor Telepon</Label>
                   <Input
                     id="phone"
                     placeholder="08123456789 or 628123456789"
@@ -481,11 +481,11 @@ export default function ContactsPageNew() {
                     }}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Will auto-format to: 628xxx
+                    Akan diformat otomatis: 628xxx
                   </p>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="group">Group (Optional)</Label>
+                  <Label htmlFor="group">Grup (Opsional)</Label>
                   <div className="relative">
                     <button
                       type="button"
@@ -496,7 +496,7 @@ export default function ContactsPageNew() {
                       )}
                     >
                       <span className="truncate">
-                        {newContact.group || "Select or create group..."}
+                        {newContact.group || "Pilih atau buat grup..."}
                       </span>
                       <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0 ml-2" />
                     </button>
@@ -512,7 +512,7 @@ export default function ContactsPageNew() {
                             <div className="relative">
                               <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                               <Input
-                                placeholder="Search or create new..."
+                                placeholder="Cari atau buat baru..."
                                 value={groupSearchTerm}
                                 onChange={(e) => setGroupSearchTerm(e.target.value)}
                                 className="pl-8 h-8"
@@ -532,7 +532,7 @@ export default function ContactsPageNew() {
                                 className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent transition-colors"
                               >
                                 <Plus className="h-4 w-4 text-primary" />
-                                <span>Create "<strong>{groupSearchTerm}</strong>"</span>
+                                <span>Buat "<strong>{groupSearchTerm}</strong>"</span>
                               </button>
                             )}
                             
@@ -564,13 +564,13 @@ export default function ContactsPageNew() {
                                   g.toLowerCase().includes(groupSearchTerm.toLowerCase())
                                 ).length === 0 && groupSearchTerm && (
                                   <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                                    No groups found
+                                    Grup tidak ditemukan
                                   </div>
                                 )}
                               </>
                             ) : (
                               <div className="px-2 py-6 text-center text-sm text-muted-foreground">
-                                No groups yet. Type to create one.
+                                Belum ada grup. Ketik untuk membuat baru.
                               </div>
                             )}
                             
@@ -587,7 +587,7 @@ export default function ContactsPageNew() {
                                   className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent text-destructive transition-colors"
                                 >
                                   <X className="h-4 w-4" />
-                                  <span>Clear selection</span>
+                                  <span>Hapus pilihan</span>
                                 </button>
                               </>
                             )}
@@ -598,17 +598,17 @@ export default function ContactsPageNew() {
                   </div>
                   {groups && groups.length > 0 && !showGroupDropdown && (
                     <p className="text-xs text-muted-foreground">
-                      {groups.length} group{groups.length !== 1 ? 's' : ''} available
+                      {groups.length} grup tersedia
                     </p>
                   )}
                 </div>
               </div>
               <DialogFooter>
                 <Button variant="outline" onClick={closeModal}>
-                  Cancel
+                  Batal
                 </Button>
                 <Button onClick={handleSaveContact} disabled={!newContact.name || !newContact.phone}>
-                  {editContact ? 'Update' : 'Save'} Contact
+                  {editContact ? 'Perbarui' : 'Simpan'} Kontak
                 </Button>
               </DialogFooter>
             </DialogContent>
@@ -619,15 +619,15 @@ export default function ContactsPageNew() {
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
             <DialogTitle className="text-2xl">
-              {editGroup ? 'Edit Group' : 'Add New Group'}
+              {editGroup ? 'Ubah Grup' : 'Tambah Grup Baru'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-4">
             <div className="space-y-2">
-              <Label htmlFor="groupName">Group Name</Label>
+              <Label htmlFor="groupName">Nama Grup</Label>
               <Input
                 id="groupName"
-                placeholder="e.g., Customer, Reseller, VIP"
+                placeholder="Contoh: Pelanggan, Reseller, VIP"
                 value={newGroupName}
                 onChange={(e) => setNewGroupName(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSaveGroup()}
@@ -636,10 +636,10 @@ export default function ContactsPageNew() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeGroupModal}>
-              Cancel
+              Batal
             </Button>
             <Button onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
-              {editGroup ? 'Update' : 'Create'} Group
+              {editGroup ? 'Perbarui' : 'Buat'} Grup
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -649,25 +649,25 @@ export default function ContactsPageNew() {
       <Dialog open={!!deleteGroupName} onOpenChange={(open) => !open && setDeleteGroupName(null)}>
         <DialogContent className="sm:max-w-[400px]">
           <DialogHeader>
-            <DialogTitle className="text-2xl">Delete Group</DialogTitle>
+            <DialogTitle className="text-2xl">Hapus Grup</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <p className="text-sm text-muted-foreground">
-              Are you sure you want to delete the group <span className="font-semibold text-foreground">"{deleteGroupName}"</span>?
+              Apakah Anda yakin ingin menghapus grup <span className="font-semibold text-foreground">"{deleteGroupName}"</span>?
             </p>
             <p className="text-sm text-muted-foreground mt-2">
-              Contacts in this group will not be deleted, but they will no longer be associated with this group.
+              Kontak dalam grup ini tidak akan dihapus, tetapi tidak lagi terkait dengan grup ini.
             </p>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteGroupName(null)}>
-              Cancel
+              Batal
             </Button>
             <Button 
               variant="destructive" 
               onClick={() => deleteGroupName && deleteGroupMutation.mutate(deleteGroupName)}
             >
-              Delete Group
+              Hapus Grup
             </Button>
           </DialogFooter>
         </DialogContent>
