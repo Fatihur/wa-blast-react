@@ -7,10 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Upload, Trash2, Edit, Users, Search } from 'lucide-react';
+import { Plus, Upload, Trash2, Edit, Users, Search, FolderOpen } from 'lucide-react';
 
 interface Contact {
   id: string;
@@ -169,13 +169,168 @@ export default function ContactsPageNew() {
             className="hidden"
             onChange={handleImport}
           />
-          <Dialog open={showAddModal} onOpenChange={(open) => !open && closeModal()}>
-            <DialogTrigger asChild>
-              <Button className="gap-2 shadow-lg shadow-primary/30">
-                <Plus className="h-4 w-4" />
-                Add Contact
-              </Button>
-            </DialogTrigger>
+          <Button 
+            className="gap-2 shadow-lg shadow-primary/30"
+            onClick={() => setShowAddModal(true)}
+          >
+            <Plus className="h-4 w-4" />
+            Add Contact
+          </Button>
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <Tabs defaultValue="contacts" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="contacts" className="gap-2">
+            <Users className="h-4 w-4" />
+            Contacts
+          </TabsTrigger>
+          <TabsTrigger value="groups" className="gap-2">
+            <FolderOpen className="h-4 w-4" />
+            Groups
+          </TabsTrigger>
+        </TabsList>
+
+        {/* Contacts Tab */}
+        <TabsContent value="contacts" className="space-y-4">
+          {/* Contacts Card */}
+          <Card className="shadow-lg">
+            <CardHeader>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  {selectedGroup === 'all' ? 'All Contacts' : selectedGroup}
+                  <Badge variant="secondary">{filteredContacts?.length || 0}</Badge>
+                </CardTitle>
+                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                  <div className="relative flex-1 sm:w-64">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      placeholder="Search contacts..."
+                      className="pl-9"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                  </div>
+                  <select
+                    className="px-3 py-2 border rounded-md bg-background text-sm"
+                    value={selectedGroup}
+                    onChange={(e) => setSelectedGroup(e.target.value)}
+                  >
+                    <option value="all">All Groups ({contacts?.length || 0})</option>
+                    {groups?.map((group: string) => (
+                      <option key={group} value={group}>
+                        {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
+              ) : filteredContacts?.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">No contacts found</p>
+              ) : (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Phone</TableHead>
+                      <TableHead>Group</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredContacts?.map((contact: Contact) => (
+                      <TableRow key={contact.id} className="hover:bg-muted/50">
+                        <TableCell className="font-medium">{contact.name}</TableCell>
+                        <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
+                        <TableCell>
+                          {contact.group ? (
+                            <Badge variant="outline">{contact.group}</Badge>
+                          ) : (
+                            <span className="text-muted-foreground text-sm">No group</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="flex justify-end gap-2">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => openEditModal(contact)}
+                              className="hover:bg-primary/10"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => deleteContactMutation.mutate(contact.id)}
+                              className="hover:bg-destructive/10 hover:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Groups Tab */}
+        <TabsContent value="groups" className="space-y-4">
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FolderOpen className="h-5 w-5" />
+                Manage Groups
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {!groups || groups.length === 0 ? (
+                  <p className="text-center text-muted-foreground py-8">
+                    No groups yet. Add contacts with groups to see them here.
+                  </p>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                    {groups.map((group: string) => {
+                      const groupCount = contacts?.filter((c: Contact) => c.group === group).length || 0;
+                      return (
+                        <Card key={group} className="hover:shadow-md transition-shadow">
+                          <CardContent className="p-6">
+                            <div className="flex items-center justify-between">
+                              <div className="space-y-1">
+                                <h3 className="font-semibold text-lg">{group}</h3>
+                                <p className="text-sm text-muted-foreground">
+                                  {groupCount} contact{groupCount !== 1 ? 's' : ''}
+                                </p>
+                              </div>
+                              <Badge variant="secondary" className="text-lg">
+                                {groupCount}
+                              </Badge>
+                            </div>
+                          </CardContent>
+                        </Card>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Add/Edit Contact Modal */}
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle className="text-2xl">
@@ -227,98 +382,7 @@ export default function ContactsPageNew() {
                 </Button>
               </DialogFooter>
             </DialogContent>
-          </Dialog>
-        </div>
-      </div>
-
-      {/* Contacts Card */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-5 w-5" />
-              {selectedGroup === 'all' ? 'All Contacts' : selectedGroup}
-              <Badge variant="secondary">{filteredContacts?.length || 0}</Badge>
-            </CardTitle>
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              <div className="relative flex-1 sm:w-64">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search contacts..."
-                  className="pl-9"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-              <select
-                className="px-3 py-2 border rounded-md bg-background text-sm"
-                value={selectedGroup}
-                onChange={(e) => setSelectedGroup(e.target.value)}
-              >
-                <option value="all">All Groups ({contacts?.length || 0})</option>
-                {groups?.map((group: string) => (
-                  <option key={group} value={group}>
-                    {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
-          ) : filteredContacts?.length === 0 ? (
-            <p className="text-center text-muted-foreground py-8">No contacts found</p>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Group</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredContacts?.map((contact: Contact) => (
-                  <TableRow key={contact.id} className="hover:bg-muted/50">
-                    <TableCell className="font-medium">{contact.name}</TableCell>
-                    <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
-                    <TableCell>
-                      {contact.group ? (
-                        <Badge variant="outline">{contact.group}</Badge>
-                      ) : (
-                        <span className="text-muted-foreground text-sm">No group</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => openEditModal(contact)}
-                          className="hover:bg-primary/10"
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteContactMutation.mutate(contact.id)}
-                          className="hover:bg-destructive/10 hover:text-destructive"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
-        </CardContent>
-      </Card>
+      </Dialog>
     </div>
   );
 }

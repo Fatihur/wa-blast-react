@@ -49,7 +49,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           sidebarOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
         )}>
           <div className="flex flex-col h-full">
-            <div className="flex items-center justify-between h-20 px-6 border-b bg-gradient-to-r from-primary/10 to-primary/5">
+            <div className="flex items-center h-20 px-6 border-b bg-gradient-to-r from-primary/10 to-primary/5">
               {!collapsed ? (
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center shadow-lg">
@@ -62,25 +62,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <MessageSquare className="h-5 w-5 text-primary-foreground" />
                 </div>
               )}
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="hidden lg:flex hover:bg-primary/10 transition-colors"
-                  onClick={() => setCollapsed(!collapsed)}
-                  title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                >
-                  {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden"
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <Menu className="h-5 w-5" />
-                </Button>
-              </div>
             </div>
 
             <nav className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
@@ -108,43 +89,61 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="p-4 border-t bg-muted/30">
-              {!collapsed ? (
-                <div className="space-y-3">
-                  <div className="flex items-start gap-3 px-2">
-                    <Info className="h-4 w-4 text-muted-foreground mt-0.5 flex-shrink-0" />
-                    <div className="space-y-1 text-xs">
-                      <p className="font-semibold text-foreground">WA Blast App</p>
-                      <p className="text-muted-foreground">Version 1.2.0</p>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    className={cn(
+                      "w-full gap-2 hover:bg-primary/10 transition-colors",
+                      collapsed ? "justify-center px-0" : "justify-start"
+                    )}
+                  >
+                    <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                    {!collapsed && <span className="text-sm">About App</span>}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="top" align="start" className="w-64">
+                  <DropdownMenuLabel className="text-base">WA Blast App</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  <div className="px-2 py-2 space-y-2">
+                    <div className="text-xs space-y-1">
+                      <p className="font-semibold text-foreground">Version 1.2.0</p>
                       <p className="text-muted-foreground leading-relaxed">
                         Bulk WhatsApp messaging platform with advanced features
                       </p>
                     </div>
-                  </div>
-                  <div className="px-2 pt-2 border-t">
-                    <p className="text-[10px] text-muted-foreground">
+                    <DropdownMenuSeparator />
+                    <div className="text-[10px] text-muted-foreground">
                       © 2024 WA Blast. All rights reserved.
-                    </p>
+                    </div>
                   </div>
-                </div>
-              ) : (
-                <div className="flex justify-center" title="WA Blast v1.2.0">
-                  <Info className="h-5 w-5 text-muted-foreground" />
-                </div>
-              )}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
         </aside>
 
         <div className="flex flex-col flex-1 w-0 overflow-hidden">
           <header className="flex items-center justify-between h-20 px-6 border-b bg-card/50 backdrop-blur-sm shadow-sm">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="lg:hidden hover:bg-primary/10 transition-colors"
-              onClick={() => setSidebarOpen(true)}
-            >
-              <Menu className="h-5 w-5" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="lg:hidden hover:bg-primary/10 transition-colors"
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu className="h-5 w-5" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="hidden lg:flex hover:bg-primary/10 transition-colors"
+                onClick={() => setCollapsed(!collapsed)}
+                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              >
+                {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
+              </Button>
+            </div>
             <div className="flex-1" />
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
