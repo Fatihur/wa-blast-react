@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 import api from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +11,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Upload, Trash2, Edit, Users, Search, FolderOpen } from 'lucide-react';
+import { Plus, Upload, Trash2, Edit, Users, Search, FolderOpen, Check, ChevronDown, X } from 'lucide-react';
 
 interface Contact {
   id: string;
@@ -29,6 +30,8 @@ export default function ContactsPageNew() {
   const [editGroup, setEditGroup] = useState<string | null>(null);
   const [newGroupName, setNewGroupName] = useState('');
   const [deleteGroupName, setDeleteGroupName] = useState<string | null>(null);
+  const [showGroupDropdown, setShowGroupDropdown] = useState(false);
+  const [groupSearchTerm, setGroupSearchTerm] = useState('');
   const queryClient = useQueryClient();
 
   const formatPhoneNumber = (phone: string): string => {
@@ -484,39 +487,118 @@ export default function ContactsPageNew() {
                 <div className="space-y-2">
                   <Label htmlFor="group">Group (Optional)</Label>
                   <div className="relative">
-                    <Input
-                      id="group"
-                      list="group-suggestions"
-                      placeholder="Select or type new group name"
-                      value={newContact.group}
-                      onChange={(e) => setNewContact({ ...newContact, group: e.target.value })}
-                      className="pr-10"
-                    />
-                    <datalist id="group-suggestions">
-                      {groups?.map((group: string) => (
-                        <option key={group} value={group} />
-                      ))}
-                    </datalist>
-                    {newContact.group && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="icon"
-                        className="absolute right-0 top-0 h-full"
-                        onClick={() => setNewContact({ ...newContact, group: '' })}
-                      >
-                        <span className="sr-only">Clear</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="18" y1="6" x2="6" y2="18"></line>
-                          <line x1="6" y1="6" x2="18" y2="18"></line>
-                        </svg>
-                      </Button>
+                    <button
+                      type="button"
+                      onClick={() => setShowGroupDropdown(!showGroupDropdown)}
+                      className={cn(
+                        "flex w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+                        !newContact.group && "text-muted-foreground"
+                      )}
+                    >
+                      <span className="truncate">
+                        {newContact.group || "Select or create group..."}
+                      </span>
+                      <ChevronDown className="h-4 w-4 opacity-50 flex-shrink-0 ml-2" />
+                    </button>
+                    
+                    {showGroupDropdown && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowGroupDropdown(false)}
+                        />
+                        <div className="absolute z-50 w-full mt-1 bg-popover rounded-md border shadow-md overflow-hidden">
+                          <div className="p-2 border-b">
+                            <div className="relative">
+                              <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                              <Input
+                                placeholder="Search or create new..."
+                                value={groupSearchTerm}
+                                onChange={(e) => setGroupSearchTerm(e.target.value)}
+                                className="pl-8 h-8"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+                          <div className="max-h-60 overflow-y-auto p-1">
+                            {groupSearchTerm && !groups?.includes(groupSearchTerm) && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setNewContact({ ...newContact, group: groupSearchTerm });
+                                  setShowGroupDropdown(false);
+                                  setGroupSearchTerm('');
+                                }}
+                                className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                              >
+                                <Plus className="h-4 w-4 text-primary" />
+                                <span>Create "<strong>{groupSearchTerm}</strong>"</span>
+                              </button>
+                            )}
+                            
+                            {groups && groups.length > 0 ? (
+                              <>
+                                {groups
+                                  .filter((g: string) => 
+                                    g.toLowerCase().includes(groupSearchTerm.toLowerCase())
+                                  )
+                                  .map((group: string) => (
+                                    <button
+                                      key={group}
+                                      type="button"
+                                      onClick={() => {
+                                        setNewContact({ ...newContact, group });
+                                        setShowGroupDropdown(false);
+                                        setGroupSearchTerm('');
+                                      }}
+                                      className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent transition-colors"
+                                    >
+                                      <FolderOpen className="h-4 w-4 text-muted-foreground" />
+                                      <span className="flex-1 text-left">{group}</span>
+                                      {newContact.group === group && (
+                                        <Check className="h-4 w-4 text-primary" />
+                                      )}
+                                    </button>
+                                  ))}
+                                {groups.filter((g: string) => 
+                                  g.toLowerCase().includes(groupSearchTerm.toLowerCase())
+                                ).length === 0 && groupSearchTerm && (
+                                  <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                                    No groups found
+                                  </div>
+                                )}
+                              </>
+                            ) : (
+                              <div className="px-2 py-6 text-center text-sm text-muted-foreground">
+                                No groups yet. Type to create one.
+                              </div>
+                            )}
+                            
+                            {newContact.group && (
+                              <>
+                                <div className="h-px bg-border my-1" />
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    setNewContact({ ...newContact, group: '' });
+                                    setShowGroupDropdown(false);
+                                    setGroupSearchTerm('');
+                                  }}
+                                  className="flex w-full items-center gap-2 rounded-sm px-2 py-1.5 text-sm hover:bg-accent text-destructive transition-colors"
+                                >
+                                  <X className="h-4 w-4" />
+                                  <span>Clear selection</span>
+                                </button>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </>
                     )}
                   </div>
-                  {groups && groups.length > 0 && (
+                  {groups && groups.length > 0 && !showGroupDropdown && (
                     <p className="text-xs text-muted-foreground">
-                      Available groups: {groups.slice(0, 3).join(', ')}
-                      {groups.length > 3 && ` +${groups.length - 3} more`}
+                      {groups.length} group{groups.length !== 1 ? 's' : ''} available
                     </p>
                   )}
                 </div>
