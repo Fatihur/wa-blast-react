@@ -27,12 +27,12 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const navigation = [
-  { name: 'Dashboard', href: '/', icon: LayoutDashboard },
-  { name: 'Koneksi', href: '/whatsapp', icon: MessageSquare },
-  { name: 'Contacts', href: '/contacts', icon: Users },
-  { name: 'Blast Message', href: '/blast', icon: Send },
-  { name: 'Campaigns', href: '/campaigns', icon: MessageSquare },
-  { name: 'Settings', href: '/settings', icon: Settings }
+  { name: 'Beranda', href: '/', icon: LayoutDashboard },
+  { name: 'Koneksi WA', href: '/whatsapp', icon: MessageSquare },
+  { name: 'Kontak', href: '/contacts', icon: Users },
+  { name: 'Kirim Pesan', href: '/blast', icon: Send },
+  { name: 'Kampanye', href: '/campaigns', icon: MessageSquare },
+  { name: 'Pengaturan', href: '/settings', icon: Settings }
 ];
 
 export default function Layout({ children }: { children: React.ReactNode }) {
@@ -100,7 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 )}
               >
                 <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                {!collapsed && <span className="text-sm">About App</span>}
+                {!collapsed && <span className="text-sm">Info Aplikasi</span>}
               </Button>
             </div>
           </div>
@@ -122,7 +122,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 size="icon"
                 className="hidden lg:flex hover:bg-primary/10 transition-colors"
                 onClick={() => setCollapsed(!collapsed)}
-                title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                title={collapsed ? "Perluas sidebar" : "Ciutkan sidebar"}
               >
                 {collapsed ? <ChevronRight className="h-5 w-5" /> : <ChevronLeft className="h-5 w-5" />}
               </Button>
@@ -141,18 +141,18 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>My Account</DropdownMenuLabel>
+                <DropdownMenuLabel>Akun Saya</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem asChild>
                   <Link to="/settings" className="cursor-pointer">
                     <User className="mr-2 h-4 w-4" />
-                    Profile Settings
+                    Pengaturan Profil
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={logout} className="text-destructive cursor-pointer">
                   <LogOut className="mr-2 h-4 w-4" />
-                  Logout
+                  Keluar
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -175,7 +175,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
       {/* About App Modal */}
       <Dialog open={showAboutModal} onOpenChange={setShowAboutModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-2xl">
               <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
@@ -187,33 +187,73 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           <div className="space-y-4 py-4">
             <div className="space-y-2">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Version</span>
+                <span className="text-sm font-semibold">Versi</span>
                 <span className="text-sm text-muted-foreground">1.2.0</span>
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-semibold">Build Date</span>
+                <span className="text-sm font-semibold">Tanggal Build</span>
                 <span className="text-sm text-muted-foreground">2024</span>
               </div>
             </div>
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold mb-2">About</h4>
+              <h4 className="text-sm font-semibold mb-2">Tentang Aplikasi</h4>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                WA Blast is a bulk WhatsApp messaging platform with advanced features for managing contacts, sending campaigns, and tracking messages.
+                WA Blast adalah platform pengiriman pesan WhatsApp massal dengan fitur lengkap untuk mengelola kontak, mengirim kampanye, dan melacak pesan.
               </p>
             </div>
             <div className="border-t pt-4">
-              <h4 className="text-sm font-semibold mb-2">Features</h4>
+              <h4 className="text-sm font-semibold mb-2">Fitur Utama</h4>
               <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
-                <li>Bulk message sending with personalization</li>
-                <li>Contact & group management</li>
-                <li>Campaign tracking with real-time progress</li>
-                <li>Daily quota limits</li>
-                <li>Multiple message types (text, image, video, document)</li>
+                <li>Pengiriman pesan massal dengan personalisasi</li>
+                <li>Manajemen kontak & grup</li>
+                <li>Pelacakan kampanye real-time</li>
+                <li>Batas kuota harian</li>
+                <li>Berbagai tipe pesan (teks, gambar, video, dokumen)</li>
               </ul>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold mb-2">Developer</h4>
+              <div className="space-y-2">
+                <p className="text-sm">
+                  <span className="font-semibold">Fatih</span>
+                </p>
+                <div className="space-y-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5.5-2.5l7.51-3.49L17.5 6.5 9.99 9.99 6.5 17.5zm5.5-6.6c.61 0 1.1.49 1.1 1.1s-.49 1.1-1.1 1.1-1.1-.49-1.1-1.1.49-1.1 1.1-1.1z"/>
+                    </svg>
+                    <span>WhatsApp: +62 877-5896-2661</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M7.8 2h8.4C19.4 2 22 4.6 22 7.8v8.4c0 3.2-2.6 5.8-5.8 5.8H7.8C4.6 22 2 19.4 2 16.2V7.8C2 4.6 4.6 2 7.8 2m-.2 2C5.6 4 4 5.6 4 7.6v8.8C4 18.39 5.61 20 7.6 20h8.8c1.99 0 3.6-1.61 3.6-3.6V7.6C20 5.61 18.39 4 16.4 4H7.6m9.65 1.5a1.25 1.25 0 011.25 1.25 1.25 1.25 0 01-1.25 1.25 1.25 1.25 0 01-1.25-1.25 1.25 1.25 0 011.25-1.25M12 7a5 5 0 015 5 5 5 0 01-5 5 5 5 0 01-5-5 5 5 0 015-5m0 2a3 3 0 00-3 3 3 3 0 003 3 3 3 0 003-3 3 3 0 00-3-3z"/>
+                    </svg>
+                    <a href="https://www.instagram.com/fatihur.r/" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                      Instagram: @fatihur.r
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M19 3a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h14m-.5 15.5v-5.3a3.26 3.26 0 00-3.26-3.26c-.85 0-1.84.52-2.32 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 011.4 1.4v4.93h2.79M6.88 8.56a1.68 1.68 0 001.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 00-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
+                    </svg>
+                    <a href="https://www.linkedin.com/in/fatihur-royyan-111a84190" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                      LinkedIn
+                    </a>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+                    </svg>
+                    <a href="https://www.facebook.com/fatihur.royyan.9" target="_blank" rel="noopener noreferrer" className="hover:text-primary transition-colors">
+                      Facebook
+                    </a>
+                  </div>
+                </div>
+              </div>
             </div>
             <div className="border-t pt-4 text-center">
               <p className="text-xs text-muted-foreground">
-                © 2024 WA Blast. All rights reserved.
+                © 2024 WA Blast. Semua hak dilindungi.
               </p>
             </div>
           </div>
