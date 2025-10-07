@@ -94,17 +94,17 @@ export default function BlastPageNew() {
 
   const handleSend = () => {
     if (!campaignName || !campaignName.trim()) {
-      toast.error('Please enter campaign name');
+      toast.error('Mohon masukkan nama kampanye');
       return;
     }
 
     if (!message || !message.trim()) {
-      toast.error('Please enter message template');
+      toast.error('Mohon masukkan template pesan');
       return;
     }
 
     if (selectedContacts.length === 0) {
-      toast.error('Please select at least one contact');
+      toast.error('Mohon pilih minimal satu kontak');
       return;
     }
 
@@ -155,9 +155,9 @@ export default function BlastPageNew() {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          Blast Message
+          Kirim Pesan
         </h1>
-        <p className="text-muted-foreground mt-1">Send bulk WhatsApp messages to your contacts</p>
+        <p className="text-muted-foreground mt-1">Kirim pesan WhatsApp massal ke kontak Anda</p>
       </div>
 
       {/* Progress Bar */}
@@ -166,7 +166,7 @@ export default function BlastPageNew() {
           <CardContent className="pt-6">
             <div className="space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-semibold">Sending in progress...</h3>
+                <h3 className="font-semibold">Sedang mengirim...</h3>
                 <Badge variant="outline" className="gap-1">
                   <Clock className="h-3 w-3" />
                   {progress.percentage}%
@@ -176,12 +176,12 @@ export default function BlastPageNew() {
               <div className="grid grid-cols-3 gap-4 text-sm">
                 <div className="flex items-center gap-2">
                   <CheckCircle className="h-4 w-4 text-green-500" />
-                  <span className="text-muted-foreground">Success:</span>
+                  <span className="text-muted-foreground">Berhasil:</span>
                   <span className="font-semibold">{progress.success}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <XCircle className="h-4 w-4 text-red-500" />
-                  <span className="text-muted-foreground">Failed:</span>
+                  <span className="text-muted-foreground">Gagal:</span>
                   <span className="font-semibold">{progress.failed}</span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -199,16 +199,16 @@ export default function BlastPageNew() {
         {/* Campaign Form */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Campaign Details</CardTitle>
-            <CardDescription>Configure your blast message campaign</CardDescription>
+            <CardTitle>Detail Kampanye</CardTitle>
+            <CardDescription>Konfigurasi kampanye kirim pesan massal</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Campaign Name */}
             <div className="space-y-2">
-              <Label htmlFor="campaign-name">Campaign Name</Label>
+              <Label htmlFor="campaign-name">Nama Kampanye</Label>
               <Input
                 id="campaign-name"
-                placeholder="e.g., Promo Ramadan 2024"
+                placeholder="Contoh: Promo Ramadan 2024"
                 value={campaignName}
                 onChange={(e) => setCampaignName(e.target.value)}
               />
@@ -216,7 +216,7 @@ export default function BlastPageNew() {
 
             {/* Message Type */}
             <div className="space-y-2">
-              <Label>Message Type</Label>
+              <Label>Tipe Pesan</Label>
               <div className="grid grid-cols-4 gap-2">
                 <Button
                   type="button"
@@ -229,7 +229,7 @@ export default function BlastPageNew() {
                   className="gap-2"
                 >
                   <FileText className="h-4 w-4" />
-                  Text
+                  Teks
                 </Button>
                 <Button
                   type="button"
@@ -239,7 +239,7 @@ export default function BlastPageNew() {
                   className="gap-2"
                 >
                   <Image className="h-4 w-4" />
-                  Image
+                  Gambar
                 </Button>
                 <Button
                   type="button"
@@ -267,7 +267,7 @@ export default function BlastPageNew() {
             {/* File Upload */}
             {messageType !== 'text' && (
               <div className="space-y-2">
-                <Label htmlFor="media-file">Upload {messageType}</Label>
+                <Label htmlFor="media-file">Unggah {messageType === 'image' ? 'Gambar' : messageType === 'video' ? 'Video' : 'File'}</Label>
                 <div className="flex gap-2">
                   <Input
                     id="media-file"
@@ -292,7 +292,7 @@ export default function BlastPageNew() {
                 </div>
                 {mediaFile && (
                   <p className="text-sm text-muted-foreground">
-                    Selected: {mediaFile.name} ({(mediaFile.size / 1024 / 1024).toFixed(2)} MB)
+                    Terpilih: {mediaFile.name} ({(mediaFile.size / 1024 / 1024).toFixed(2)} MB)
                   </p>
                 )}
               </div>
@@ -300,23 +300,23 @@ export default function BlastPageNew() {
 
             {/* Message Template */}
             <div className="space-y-2">
-              <Label>Message Template</Label>
+              <Label>Template Pesan</Label>
               <RichTextEditor
                 content={message}
                 onChange={setMessage}
-                placeholder="Write your message here... Use {{nama}} for personalization"
+                placeholder="Tulis pesan Anda di sini... Gunakan {{nama}} untuk personalisasi"
               />
             </div>
 
             {/* Group Selection */}
             <div className="space-y-2">
-              <Label>Select Group</Label>
+              <Label>Pilih Grup</Label>
               <select
                 className="w-full p-2 border rounded-lg bg-background"
                 value={selectedGroup}
                 onChange={(e) => handleGroupSelect(e.target.value)}
               >
-                <option value="">All Contacts</option>
+                <option value="">Semua Kontak</option>
                 {groups?.map((group: string) => (
                   <option key={group} value={group}>{group}</option>
                 ))}
@@ -325,7 +325,7 @@ export default function BlastPageNew() {
 
             {/* Delay Settings */}
             <div className="space-y-2">
-              <Label>Delay Between Messages (seconds)</Label>
+              <Label>Jeda Antar Pesan (detik)</Label>
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <Input
@@ -336,7 +336,7 @@ export default function BlastPageNew() {
                     onChange={(e) => setMinDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
                     placeholder="Min"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Min: 1-30s</p>
+                  <p className="text-xs text-muted-foreground mt-1">Min: 1-30 detik</p>
                 </div>
                 <div>
                   <Input
@@ -347,11 +347,11 @@ export default function BlastPageNew() {
                     onChange={(e) => setMaxDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 6)))}
                     placeholder="Max"
                   />
-                  <p className="text-xs text-muted-foreground mt-1">Max: 1-30s</p>
+                  <p className="text-xs text-muted-foreground mt-1">Maks: 1-30 detik</p>
                 </div>
               </div>
               <p className="text-xs text-muted-foreground">
-                Random delay between {minDelay}-{maxDelay} seconds to avoid detection
+                Jeda acak antara {minDelay}-{maxDelay} detik untuk menghindari deteksi
               </p>
             </div>
 
@@ -363,16 +363,16 @@ export default function BlastPageNew() {
               size="lg"
             >
               <Send className="h-5 w-5" />
-              {sendBlastMutation.isPending ? 'Starting Campaign...' : `Send to ${selectedContacts.length} Contact${selectedContacts.length !== 1 ? 's' : ''}`}
+              {sendBlastMutation.isPending ? 'Memulai Kampanye...' : `Kirim ke ${selectedContacts.length} Kontak`}
             </Button>
 
             {selectedContacts.length > 0 && (
               <div className="text-sm text-muted-foreground space-y-1 p-4 bg-muted/30 rounded-lg">
                 <p className="flex items-center gap-2">
                   <Clock className="h-4 w-4" />
-                  Estimated time: ~{Math.ceil(selectedContacts.length * 4 / 60)} minutes
+                  Estimasi waktu: ~{Math.ceil(selectedContacts.length * 4 / 60)} menit
                 </p>
-                <p>💡 Messages will be sent with 3-6 seconds delay between each</p>
+                <p>💡 Pesan akan dikirim dengan jeda 3-6 detik antar pesan</p>
               </div>
             )}
           </CardContent>
@@ -381,8 +381,8 @@ export default function BlastPageNew() {
         {/* Contact Selection - Button to open modal */}
         <Card className="shadow-lg">
           <CardHeader>
-            <CardTitle>Select Contacts</CardTitle>
-            <CardDescription>Choose recipients for your message</CardDescription>
+            <CardTitle>Pilih Kontak</CardTitle>
+            <CardDescription>Pilih penerima untuk pesan Anda</CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <Button 
@@ -392,26 +392,26 @@ export default function BlastPageNew() {
             >
               <Users className="h-5 w-5 mr-2" />
               {selectedContacts.length > 0 
-                ? `${selectedContacts.length} Contact${selectedContacts.length > 1 ? 's' : ''} Selected`
-                : 'Click to Select Contacts'}
+                ? `${selectedContacts.length} Kontak Dipilih`
+                : 'Klik untuk Pilih Kontak'}
             </Button>
 
             {selectedContacts.length > 0 && (
               <div className="p-4 bg-primary/10 rounded-lg">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-sm font-semibold">
-                    {selectedContacts.length} contact{selectedContacts.length > 1 ? 's' : ''} selected
+                    {selectedContacts.length} kontak dipilih
                   </p>
                   <Button 
                     variant="ghost" 
                     size="sm"
                     onClick={() => setSelectedContacts([])}
                   >
-                    Clear All
+                    Hapus Semua
                   </Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Click button above to change selection
+                  Klik tombol di atas untuk mengubah pilihan
                 </p>
               </div>
             )}
@@ -422,21 +422,21 @@ export default function BlastPageNew() {
         <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
             <DialogHeader>
-              <DialogTitle>Select Contacts</DialogTitle>
+              <DialogTitle>Pilih Kontak</DialogTitle>
             </DialogHeader>
             
             <div className="flex items-center gap-2">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input 
-                  placeholder="Search by name or phone..."
+                  placeholder="Cari berdasarkan nama atau telepon..."
                   value={contactSearch}
                   onChange={(e) => setContactSearch(e.target.value)}
                   className="pl-9"
                 />
               </div>
               <Button size="sm" variant="outline" onClick={selectAll}>
-                Select All
+                Pilih Semua
               </Button>
             </div>
 
@@ -470,14 +470,14 @@ export default function BlastPageNew() {
 
             <div className="flex items-center justify-between pt-4 border-t">
               <p className="text-sm text-muted-foreground">
-                {selectedContacts.length} of {contacts?.length || 0} selected
+                {selectedContacts.length} dari {contacts?.length || 0} dipilih
               </p>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => setShowContactModal(false)}>
-                  Cancel
+                  Batal
                 </Button>
                 <Button onClick={() => setShowContactModal(false)}>
-                  Done
+                  Selesai
                 </Button>
               </div>
             </div>

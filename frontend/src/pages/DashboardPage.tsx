@@ -23,8 +23,8 @@ export default function DashboardPage() {
   });
 
   const chartData = [
-    { name: 'Success', value: stats?.successMessages || 0, color: '#10b981' },
-    { name: 'Failed', value: stats?.failedMessages || 0, color: '#ef4444' },
+    { name: 'Berhasil', value: stats?.successMessages || 0, color: '#10b981' },
+    { name: 'Gagal', value: stats?.failedMessages || 0, color: '#ef4444' },
     { name: 'Pending', value: stats?.pendingMessages || 0, color: '#f59e0b' }
   ];
 
@@ -37,7 +37,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-center h-[calc(100vh-200px)]">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading dashboard...</p>
+          <p className="text-muted-foreground">Memuat dashboard...</p>
         </div>
       </div>
     );
@@ -48,62 +48,62 @@ export default function DashboardPage() {
       {/* Header */}
       <div>
         <h1 className="text-4xl font-bold bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-          Dashboard
+          Beranda
         </h1>
-        <p className="text-muted-foreground mt-2">Welcome back! Here's your WhatsApp blast overview</p>
+        <p className="text-muted-foreground mt-2">Selamat datang! Berikut ringkasan WhatsApp blast Anda</p>
       </div>
 
       {/* Stats Cards */}
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
         <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-primary">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Contacts</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Kontak</CardTitle>
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
               <Users className="h-5 w-5 text-primary" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats?.totalContacts || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Active recipients</p>
+            <p className="text-xs text-muted-foreground mt-1">Penerima aktif</p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-blue-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Messages</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Pesan</CardTitle>
             <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center">
               <MessageSquare className="h-5 w-5 text-blue-500" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold">{stats?.totalMessages || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Messages sent</p>
+            <p className="text-xs text-muted-foreground mt-1">Pesan terkirim</p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-green-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Success Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Tingkat Keberhasilan</CardTitle>
             <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center">
               <CheckCircle className="h-5 w-5 text-green-500" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-green-600">{successRate}%</div>
-            <p className="text-xs text-muted-foreground mt-1">{stats?.successMessages || 0} delivered</p>
+            <p className="text-xs text-muted-foreground mt-1">{stats?.successMessages || 0} terkirim</p>
           </CardContent>
         </Card>
 
         <Card className="hover:shadow-lg transition-shadow border-l-4 border-l-red-500">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Failed</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Gagal</CardTitle>
             <div className="w-10 h-10 rounded-full bg-red-500/10 flex items-center justify-center">
               <XCircle className="h-5 w-5 text-red-500" />
             </div>
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-red-600">{stats?.failedMessages || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Messages failed</p>
+            <p className="text-xs text-muted-foreground mt-1">Pesan gagal</p>
           </CardContent>
         </Card>
       </div>
@@ -114,9 +114,9 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="h-5 w-5" />
-              Message Statistics
+              Statistik Pesan
             </CardTitle>
-            <CardDescription>Overview of your message delivery status</CardDescription>
+            <CardDescription>Ringkasan status pengiriman pesan Anda</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -145,9 +145,9 @@ export default function DashboardPage() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Distribution
+              Distribusi
             </CardTitle>
-            <CardDescription>Message status breakdown</CardDescription>
+            <CardDescription>Rincian status pesan</CardDescription>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -180,11 +180,11 @@ export default function DashboardPage() {
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Clock className="h-5 w-5" />
-                Recent Messages
+                Pesan Terbaru
               </CardTitle>
-              <CardDescription>Latest message delivery attempts</CardDescription>
+              <CardDescription>Percobaan pengiriman pesan terbaru</CardDescription>
             </div>
-            <Badge variant="outline">{recentMessages?.length || 0} messages</Badge>
+            <Badge variant="outline">{recentMessages?.length || 0} pesan</Badge>
           </div>
         </CardHeader>
         <CardContent>
@@ -217,7 +217,7 @@ export default function DashboardPage() {
             {(!recentMessages || recentMessages.length === 0) && (
               <div className="text-center py-12 text-muted-foreground">
                 <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-20" />
-                <p>No messages yet. Start a campaign to see activity here!</p>
+                <p>Belum ada pesan. Mulai kampanye untuk melihat aktivitas di sini!</p>
               </div>
             )}
           </div>
