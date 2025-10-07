@@ -15,24 +15,24 @@ export default function CampaignsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Campaigns</h1>
+      <h1 className="text-3xl font-bold">Kampanye</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Campaign History</CardTitle>
+          <CardTitle>Riwayat Kampanye</CardTitle>
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <p>Loading campaigns...</p>
+            <p>Memuat kampanye...</p>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Campaign Name</TableHead>
-                  <TableHead>Total Sent</TableHead>
-                  <TableHead>Success</TableHead>
-                  <TableHead>Failed</TableHead>
-                  <TableHead>Date</TableHead>
+                  <TableHead>Nama Kampanye</TableHead>
+                  <TableHead>Total Terkirim</TableHead>
+                  <TableHead>Berhasil</TableHead>
+                  <TableHead>Gagal</TableHead>
+                  <TableHead>Tanggal</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

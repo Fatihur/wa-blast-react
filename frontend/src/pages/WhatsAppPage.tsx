@@ -35,11 +35,11 @@ export default function WhatsAppPage() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
-      toast.success('Disconnected from WhatsApp');
+      toast.success('Terputus dari WhatsApp');
       setShowQR(false);
     },
     onError: () => {
-      toast.error('Failed to disconnect');
+      toast.error('Gagal memutuskan koneksi');
     }
   });
 
@@ -50,14 +50,14 @@ export default function WhatsAppPage() {
     onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: ['whatsapp-status'] });
       if (response.data.connected) {
-        toast.success('Session restored successfully!');
+        toast.success('Sesi berhasil dipulihkan!');
       } else {
-        toast.info('Please scan QR code to connect');
+        toast.info('Silakan pindai kode QR untuk terhubung');
         setShowQR(true);
       }
     },
     onError: () => {
-      toast.error('Failed to restore session');
+      toast.error('Gagal memulihkan sesi');
     }
   });
 
@@ -70,18 +70,18 @@ export default function WhatsAppPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">WhatsApp Connection</h1>
+      <h1 className="text-3xl font-bold">Koneksi WhatsApp</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Connection Status</CardTitle>
-          <CardDescription>Manage your WhatsApp connection</CardDescription>
+          <CardTitle>Status Koneksi</CardTitle>
+          <CardDescription>Kelola koneksi WhatsApp Anda</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
             <span className="font-medium">
-              {isConnected ? 'Connected' : 'Disconnected'}
+              {isConnected ? 'Terhubung' : 'Terputus'}
             </span>
             {isConnected ? (
               <CheckCircle className="h-5 w-5 text-green-500" />
@@ -94,7 +94,7 @@ export default function WhatsAppPage() {
             <div className="flex gap-2">
               <Button onClick={handleConnect}>
                 <QrCode className="h-4 w-4 mr-2" />
-                Connect WhatsApp
+                Hubungkan WhatsApp
               </Button>
               <Button 
                 variant="outline" 
@@ -102,14 +102,14 @@ export default function WhatsAppPage() {
                 disabled={restoreMutation.isPending}
               >
                 <RefreshCw className="h-4 w-4 mr-2" />
-                {restoreMutation.isPending ? 'Restoring...' : 'Restore Session'}
+                {restoreMutation.isPending ? 'Memulihkan...' : 'Pulihkan Sesi'}
               </Button>
             </div>
           )}
 
           {isConnected && (
             <Button variant="destructive" onClick={() => disconnectMutation.mutate()}>
-              Disconnect
+              Putuskan Koneksi
             </Button>
           )}
         </CardContent>
@@ -118,9 +118,9 @@ export default function WhatsAppPage() {
       {showQR && !isConnected && (
         <Card>
           <CardHeader>
-            <CardTitle>Scan QR Code</CardTitle>
+            <CardTitle>Pindai Kode QR</CardTitle>
             <CardDescription>
-              Open WhatsApp on your phone and scan this QR code to connect
+              Buka WhatsApp di ponsel Anda dan pindai kode QR ini untuk terhubung
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col items-center">
@@ -128,7 +128,7 @@ export default function WhatsAppPage() {
               <>
                 <img src={qrCode.qr} alt="QR Code" className="w-64 h-64 border rounded-lg" />
                 <p className="text-sm text-muted-foreground mt-4 text-center">
-                  Open WhatsApp → Settings → Linked Devices → Link a Device
+                  Buka WhatsApp → Pengaturan → Perangkat Tertaut → Tautkan Perangkat
                 </p>
                 <Button
                   variant="outline"
@@ -136,13 +136,13 @@ export default function WhatsAppPage() {
                   className="mt-4"
                 >
                   <RefreshCw className="h-4 w-4 mr-2" />
-                  Refresh QR Code
+                  Perbarui Kode QR
                 </Button>
               </>
             ) : (
               <div className="text-center">
-                <p>Generating QR code...</p>
-                <p className="text-sm text-muted-foreground mt-2">Please wait a moment</p>
+                <p>Membuat kode QR...</p>
+                <p className="text-sm text-muted-foreground mt-2">Mohon tunggu sebentar</p>
               </div>
             )}
           </CardContent>
@@ -151,16 +151,16 @@ export default function WhatsAppPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Instructions</CardTitle>
+          <CardTitle>Petunjuk</CardTitle>
         </CardHeader>
         <CardContent>
           <ol className="list-decimal list-inside space-y-2 text-sm">
-            <li>Click "Connect WhatsApp" button above</li>
-            <li>Open WhatsApp on your phone</li>
-            <li>Go to Settings → Linked Devices</li>
-            <li>Tap on "Link a Device"</li>
-            <li>Scan the QR code displayed above</li>
-            <li>Wait for the connection to be established</li>
+            <li>Klik tombol "Hubungkan WhatsApp" di atas</li>
+            <li>Buka WhatsApp di ponsel Anda</li>
+            <li>Buka Pengaturan → Perangkat Tertaut</li>
+            <li>Ketuk "Tautkan Perangkat"</li>
+            <li>Pindai kode QR yang ditampilkan di atas</li>
+            <li>Tunggu hingga koneksi terbentuk</li>
           </ol>
         </CardContent>
       </Card>

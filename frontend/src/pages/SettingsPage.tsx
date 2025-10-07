@@ -24,17 +24,17 @@ export default function SettingsPage() {
       return await api.post('/user/regenerate-api-key');
     },
     onSuccess: () => {
-      toast.success('API Key regenerated successfully');
+      toast.success('API Key berhasil dibuat ulang');
       window.location.reload();
     },
     onError: () => {
-      toast.error('Failed to regenerate API key');
+      toast.error('Gagal membuat ulang API key');
     }
   });
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
-    toast.success('Copied to clipboard');
+    toast.success('Disalin ke clipboard');
   };
 
   const toggleTheme = () => {
@@ -45,16 +45,16 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold">Settings</h1>
+      <h1 className="text-3xl font-bold">Pengaturan</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Profile Information</CardTitle>
-          <CardDescription>Your account details</CardDescription>
+          <CardTitle>Informasi Profil</CardTitle>
+          <CardDescription>Detail akun Anda</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>Name</Label>
+            <Label>Nama</Label>
             <Input value={profile?.name || ''} disabled />
           </div>
           <div>
@@ -62,7 +62,7 @@ export default function SettingsPage() {
             <Input value={profile?.email || ''} disabled />
           </div>
           <div>
-            <Label>Daily Quota Limit</Label>
+            <Label>Batas Kuota Harian</Label>
             <Input value={profile?.quotaLimit || 0} disabled />
           </div>
         </CardContent>
@@ -71,7 +71,7 @@ export default function SettingsPage() {
       <Card>
         <CardHeader>
           <CardTitle>API Key</CardTitle>
-          <CardDescription>Use this key for API integrations</CardDescription>
+          <CardDescription>Gunakan kunci ini untuk integrasi API</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex gap-2">
@@ -94,18 +94,18 @@ export default function SettingsPage() {
             disabled={regenerateKeyMutation.isPending}
           >
             <RefreshCw className="h-4 w-4 mr-2" />
-            Regenerate API Key
+            Buat Ulang API Key
           </Button>
           <p className="text-sm text-muted-foreground">
-            Warning: Regenerating will invalidate your current API key
+            Peringatan: Membuat ulang akan membatalkan API key Anda saat ini
           </p>
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>API Base URL</CardTitle>
-          <CardDescription>Use this URL for API requests</CardDescription>
+          <CardTitle>URL Dasar API</CardTitle>
+          <CardDescription>Gunakan URL ini untuk permintaan API</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex gap-2">
@@ -127,12 +127,12 @@ export default function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Appearance</CardTitle>
-          <CardDescription>Customize the look and feel</CardDescription>
+          <CardTitle>Tampilan</CardTitle>
+          <CardDescription>Sesuaikan tampilan aplikasi</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <Label>Dark Mode</Label>
+            <Label>Mode Gelap</Label>
             <Button
               variant="outline"
               size="icon"
