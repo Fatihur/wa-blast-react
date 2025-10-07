@@ -483,12 +483,42 @@ export default function ContactsPageNew() {
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="group">Group (Optional)</Label>
-                  <Input
-                    id="group"
-                    placeholder="Customer, Reseller, etc"
-                    value={newContact.group}
-                    onChange={(e) => setNewContact({ ...newContact, group: e.target.value })}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="group"
+                      list="group-suggestions"
+                      placeholder="Select or type new group name"
+                      value={newContact.group}
+                      onChange={(e) => setNewContact({ ...newContact, group: e.target.value })}
+                      className="pr-10"
+                    />
+                    <datalist id="group-suggestions">
+                      {groups?.map((group: string) => (
+                        <option key={group} value={group} />
+                      ))}
+                    </datalist>
+                    {newContact.group && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        className="absolute right-0 top-0 h-full"
+                        onClick={() => setNewContact({ ...newContact, group: '' })}
+                      >
+                        <span className="sr-only">Clear</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      </Button>
+                    )}
+                  </div>
+                  {groups && groups.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Available groups: {groups.slice(0, 3).join(', ')}
+                      {groups.length > 3 && ` +${groups.length - 3} more`}
+                    </p>
+                  )}
                 </div>
               </div>
               <DialogFooter>
