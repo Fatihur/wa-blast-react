@@ -25,6 +25,10 @@ export default function ContactsPageNew() {
   const [newContact, setNewContact] = useState({ name: '', phone: '', group: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
+  const [showGroupModal, setShowGroupModal] = useState(false);
+  const [editGroup, setEditGroup] = useState<string | null>(null);
+  const [newGroupName, setNewGroupName] = useState('');
+  const [deleteGroupName, setDeleteGroupName] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
   const formatPhoneNumber = (phone: string): string => {
@@ -94,6 +98,53 @@ export default function ContactsPageNew() {
     }
   });
 
+  const addGroupMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return await api.post('/contacts/groups', { name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast.success('Group created successfully');
+      setShowGroupModal(false);
+      setNewGroupName('');
+    },
+    onError: (error: any) => {
+      toast.error(error.response?.data?.error || 'Failed to create group');
+    }
+  });
+
+  const updateGroupMutation = useMutation({
+    mutationFn: async ({ oldName, newName }: { oldName: string; newName: string }) => {
+      return await api.put(`/contacts/groups/${encodeURIComponent(oldName)}`, { newName });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      toast.success('Group renamed successfully');
+      setShowGroupModal(false);
+      setEditGroup(null);
+      setNewGroupName('');
+    },
+    onError: () => {
+      toast.error('Failed to rename group');
+    }
+  });
+
+  const deleteGroupMutation = useMutation({
+    mutationFn: async (name: string) => {
+      return await api.delete(`/contacts/groups/${encodeURIComponent(name)}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      toast.success('Group deleted successfully');
+      setDeleteGroupName(null);
+    },
+    onError: () => {
+      toast.error('Failed to delete group');
+    }
+  });
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -139,6 +190,31 @@ export default function ContactsPageNew() {
     setShowAddModal(false);
     setEditContact(null);
     setNewContact({ name: '', phone: '', group: '' });
+  };
+
+  const handleSaveGroup = () => {
+    if (!newGroupName.trim()) {
+      toast.error('Please enter group name');
+      return;
+    }
+
+    if (editGroup) {
+      updateGroupMutation.mutate({ oldName: editGroup, newName: newGroupName });
+    } else {
+      addGroupMutation.mutate(newGroupName);
+    }
+  };
+
+  const openEditGroup = (group: string) => {
+    setEditGroup(group);
+    setNewGroupName(group);
+    setShowGroupModal(true);
+  };
+
+  const closeGroupModal = () => {
+    setShowGroupModal(false);
+    setEditGroup(null);
+    setNewGroupName('');
   };
 
   const filteredContacts = selectedGroup === 'all' 
@@ -288,17 +364,37 @@ export default function ContactsPageNew() {
         <TabsContent value="groups" className="space-y-4">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FolderOpen className="h-5 w-5" />
-                Manage Groups
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <FolderOpen className="h-5 w-5" />
+                  Manage Groups
+                </CardTitle>
+                <Button 
+                  onClick={() => setShowGroupModal(true)}
+                  className="gap-2"
+                >
+                  <Plus className="h-4 w-4" />
+                  Add Group
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-4">
                 {!groups || groups.length === 0 ? (
-                  <p className="text-center text-muted-foreground py-8">
-                    No groups yet. Add contacts with groups to see them here.
-                  </p>
+                  <div className="text-center py-12">
+                    <FolderOpen className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                    <p className="text-muted-foreground mb-4">
+                      No groups yet. Create a group to organize your contacts.
+                    </p>
+                    <Button 
+                      onClick={() => setShowGroupModal(true)}
+                      variant="outline"
+                      className="gap-2"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Create First Group
+                    </Button>
+                  </div>
                 ) : (
                   <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     {groups.map((group: string) => {
@@ -306,16 +402,38 @@ export default function ContactsPageNew() {
                       return (
                         <Card key={group} className="hover:shadow-md transition-shadow">
                           <CardContent className="p-6">
-                            <div className="flex items-center justify-between">
-                              <div className="space-y-1">
-                                <h3 className="font-semibold text-lg">{group}</h3>
-                                <p className="text-sm text-muted-foreground">
-                                  {groupCount} contact{groupCount !== 1 ? 's' : ''}
-                                </p>
+                            <div className="space-y-4">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1 flex-1">
+                                  <h3 className="font-semibold text-lg">{group}</h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    {groupCount} contact{groupCount !== 1 ? 's' : ''}
+                                  </p>
+                                </div>
+                                <Badge variant="secondary" className="text-lg">
+                                  {groupCount}
+                                </Badge>
                               </div>
-                              <Badge variant="secondary" className="text-lg">
-                                {groupCount}
-                              </Badge>
+                              <div className="flex gap-2">
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => openEditGroup(group)}
+                                  className="flex-1 gap-2"
+                                >
+                                  <Edit className="h-3 w-3" />
+                                  Edit
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  size="sm"
+                                  onClick={() => setDeleteGroupName(group)}
+                                  className="flex-1 gap-2 hover:bg-destructive/10 hover:text-destructive"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                  Delete
+                                </Button>
+                              </div>
                             </div>
                           </CardContent>
                         </Card>
@@ -382,6 +500,65 @@ export default function ContactsPageNew() {
                 </Button>
               </DialogFooter>
             </DialogContent>
+      </Dialog>
+
+      {/* Add/Edit Group Modal */}
+      <Dialog open={showGroupModal} onOpenChange={setShowGroupModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">
+              {editGroup ? 'Edit Group' : 'Add New Group'}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="groupName">Group Name</Label>
+              <Input
+                id="groupName"
+                placeholder="e.g., Customer, Reseller, VIP"
+                value={newGroupName}
+                onChange={(e) => setNewGroupName(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleSaveGroup()}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={closeGroupModal}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveGroup} disabled={!newGroupName.trim()}>
+              {editGroup ? 'Update' : 'Create'} Group
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Group Confirmation */}
+      <Dialog open={!!deleteGroupName} onOpenChange={(open) => !open && setDeleteGroupName(null)}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Delete Group</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete the group <span className="font-semibold text-foreground">"{deleteGroupName}"</span>?
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Contacts in this group will not be deleted, but they will no longer be associated with this group.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteGroupName(null)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={() => deleteGroupName && deleteGroupMutation.mutate(deleteGroupName)}
+            >
+              Delete Group
+            </Button>
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
     </div>
   );

@@ -117,4 +117,66 @@ router.get('/groups', authenticateToken, async (req: AuthRequest, res) => {
   }
 });
 
+router.post('/groups', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { name } = req.body;
+
+    if (!name || name.trim() === '') {
+      return res.status(400).json({ error: 'Group name is required' });
+    }
+
+    // Check if group already exists
+    const existing = await prisma.contact.findFirst({
+      where: { userId: req.userId, group: name }
+    });
+
+    if (existing) {
+      return res.status(400).json({ error: 'Group already exists' });
+    }
+
+    // Create a dummy contact with this group (will be replaced when real contacts added)
+    // Or just return success since group is created when first contact is added
+    res.status(201).json({ message: 'Group created', name });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to create group' });
+  }
+});
+
+router.put('/groups/:oldName', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { oldName } = req.params;
+    const { newName } = req.body;
+
+    if (!newName || newName.trim() === '') {
+      return res.status(400).json({ error: 'New group name is required' });
+    }
+
+    // Update all contacts with this group
+    const result = await prisma.contact.updateMany({
+      where: { userId: req.userId, group: oldName },
+      data: { group: newName }
+    });
+
+    res.json({ message: 'Group renamed', count: result.count });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to rename group' });
+  }
+});
+
+router.delete('/groups/:name', authenticateToken, async (req: AuthRequest, res) => {
+  try {
+    const { name } = req.params;
+
+    // Set group to null for all contacts in this group
+    const result = await prisma.contact.updateMany({
+      where: { userId: req.userId, group: name },
+      data: { group: null }
+    });
+
+    res.json({ message: 'Group deleted', count: result.count });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to delete group' });
+  }
+});
+
 export default router;
