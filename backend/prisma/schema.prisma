@@ -1,0 +1,96 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          String    @id @default(uuid())
+  name        String
+  email       String    @unique
+  password    String
+  apiKey      String    @unique @map("api_key")
+  quotaLimit  Int       @default(1000) @map("quota_limit")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+  
+  contacts    Contact[]
+  messages    Message[]
+  campaigns   Campaign[]
+  sessions    Session[]
+
+  @@map("users")
+}
+
+model Contact {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  phone     String
+  group     String?
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages  Message[]
+
+  @@map("contacts")
+}
+
+enum MessageType {
+  text
+  image
+  video
+  file
+}
+
+enum MessageStatus {
+  pending
+  success
+  failed
+}
+
+model Message {
+  id        String        @id @default(uuid())
+  userId    String        @map("user_id")
+  contactId String        @map("contact_id")
+  content   String
+  type      MessageType   @default(text)
+  status    MessageStatus @default(pending)
+  sentAt    DateTime?     @map("sent_at")
+  createdAt DateTime      @default(now()) @map("created_at")
+  
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contact   Contact       @relation(fields: [contactId], references: [id], onDelete: Cascade)
+
+  @@map("messages")
+}
+
+model Campaign {
+  id              String   @id @default(uuid())
+  userId          String   @map("user_id")
+  name            String
+  messageTemplate String   @map("message_template")
+  totalSent       Int      @default(0) @map("total_sent")
+  totalSuccess    Int      @default(0) @map("total_success")
+  totalFailed     Int      @default(0) @map("total_failed")
+  createdAt       DateTime @default(now()) @map("created_at")
+  
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("campaigns")
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String   @unique @map("user_id")
+  sessionData String   @map("session_data")
+  status      String   @default("disconnected")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+  
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
