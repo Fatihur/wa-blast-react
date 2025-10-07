@@ -194,7 +194,9 @@ export async function sendBulkMessages(
       const fs = require('fs');
       try {
         mediaBuffer = fs.readFileSync(mediaPath);
-        console.log(`Media file loaded: ${mediaPath} (${mediaBuffer.length} bytes)`);
+        if (mediaBuffer) {
+          console.log(`Media file loaded: ${mediaPath} (${mediaBuffer.length} bytes)`);
+        }
       } catch (error) {
         console.error(`Failed to read media file: ${mediaPath}`, error);
         throw new Error('Failed to read media file');
@@ -202,15 +204,16 @@ export async function sendBulkMessages(
     }
 
     for (const contact of contacts) {
+      let personalizedMessage = '';
       try {
-        const personalizedMessage = messageTemplate.replace(/\{\{nama\}\}/g, contact.name).replace(/<[^>]*>/g, '');
+        personalizedMessage = messageTemplate.replace(/\{\{nama\}\}/g, contact.name).replace(/<[^>]*>/g, '');
         
         const jid = normalizePhoneNumber(contact.phone);
         console.log(`Sending to ${contact.name} (${jid})...`);
         
         if (messageType === 'text') {
           await sock.sendMessage(jid, { text: personalizedMessage });
-        } else if (mediaBuffer) {
+        } else if (mediaBuffer && mediaPath) {
           const messageOptions: any = { caption: personalizedMessage };
           
           if (messageType === 'image') {
@@ -219,8 +222,8 @@ export async function sendBulkMessages(
             messageOptions.video = mediaBuffer;
           } else if (messageType === 'document') {
             messageOptions.document = mediaBuffer;
-            messageOptions.fileName = require('path').basename(mediaPath!);
-            messageOptions.mimetype = getMimeType(mediaPath!);
+            messageOptions.fileName = require('path').basename(mediaPath);
+            messageOptions.mimetype = getMimeType(mediaPath);
           }
           
           await sock.sendMessage(jid, messageOptions);
