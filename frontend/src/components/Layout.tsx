@@ -24,6 +24,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -39,6 +40,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuthStore();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted/20">
@@ -89,36 +91,17 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </nav>
 
             <div className="p-4 border-t bg-muted/30">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button 
-                    variant="ghost" 
-                    className={cn(
-                      "w-full gap-2 hover:bg-primary/10 transition-colors",
-                      collapsed ? "justify-center px-0" : "justify-start"
-                    )}
-                  >
-                    <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                    {!collapsed && <span className="text-sm">About App</span>}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent side="top" align="start" className="w-64">
-                  <DropdownMenuLabel className="text-base">WA Blast App</DropdownMenuLabel>
-                  <DropdownMenuSeparator />
-                  <div className="px-2 py-2 space-y-2">
-                    <div className="text-xs space-y-1">
-                      <p className="font-semibold text-foreground">Version 1.2.0</p>
-                      <p className="text-muted-foreground leading-relaxed">
-                        Bulk WhatsApp messaging platform with advanced features
-                      </p>
-                    </div>
-                    <DropdownMenuSeparator />
-                    <div className="text-[10px] text-muted-foreground">
-                      © 2024 WA Blast. All rights reserved.
-                    </div>
-                  </div>
-                </DropdownMenuContent>
-              </DropdownMenu>
+              <Button 
+                variant="ghost" 
+                onClick={() => setShowAboutModal(true)}
+                className={cn(
+                  "w-full gap-2 hover:bg-primary/10 transition-colors",
+                  collapsed ? "justify-center px-0" : "justify-start"
+                )}
+              >
+                <Info className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                {!collapsed && <span className="text-sm">About App</span>}
+              </Button>
             </div>
           </div>
         </aside>
@@ -189,6 +172,53 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           onClick={() => setSidebarOpen(false)}
         />
       )}
+
+      {/* About App Modal */}
+      <Dialog open={showAboutModal} onOpenChange={setShowAboutModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-2xl">
+              <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+                <MessageSquare className="h-5 w-5 text-primary-foreground" />
+              </div>
+              WA Blast App
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Version</span>
+                <span className="text-sm text-muted-foreground">1.2.0</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-semibold">Build Date</span>
+                <span className="text-sm text-muted-foreground">2024</span>
+              </div>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold mb-2">About</h4>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                WA Blast is a bulk WhatsApp messaging platform with advanced features for managing contacts, sending campaigns, and tracking messages.
+              </p>
+            </div>
+            <div className="border-t pt-4">
+              <h4 className="text-sm font-semibold mb-2">Features</h4>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
+                <li>Bulk message sending with personalization</li>
+                <li>Contact & group management</li>
+                <li>Campaign tracking with real-time progress</li>
+                <li>Daily quota limits</li>
+                <li>Multiple message types (text, image, video, document)</li>
+              </ul>
+            </div>
+            <div className="border-t pt-4 text-center">
+              <p className="text-xs text-muted-foreground">
+                © 2024 WA Blast. All rights reserved.
+              </p>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

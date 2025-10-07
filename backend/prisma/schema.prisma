@@ -21,8 +21,21 @@ model User {
   messages    Message[]
   campaigns   Campaign[]
   sessions    Session[]
+  groups      Group[]
 
   @@map("users")
+}
+
+model Group {
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  name      String
+  createdAt DateTime @default(now()) @map("created_at")
+  
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, name])
+  @@map("groups")
 }
 
 model Contact {
