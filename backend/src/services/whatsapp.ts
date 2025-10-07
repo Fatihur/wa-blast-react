@@ -165,7 +165,9 @@ export async function sendBulkMessages(
   contactIds: string[],
   messageTemplate: string,
   messageType: string = 'text',
-  mediaPath?: string
+  mediaPath?: string,
+  minDelay: number = 3,
+  maxDelay: number = 6
 ): Promise<void> {
   try {
     let sock = sessions.get(userId);
@@ -247,8 +249,9 @@ export async function sendBulkMessages(
 
         console.log(`✅ Sent to ${contact.name}`);
 
-        const delay = 3000 + Math.random() * 3000;
-        await new Promise(resolve => setTimeout(resolve, delay));
+        const delayMs = (minDelay * 1000) + Math.random() * ((maxDelay - minDelay) * 1000);
+        console.log(`Waiting ${(delayMs / 1000).toFixed(1)}s before next message...`);
+        await new Promise(resolve => setTimeout(resolve, delayMs));
         
       } catch (error: any) {
         console.error(`❌ Failed to send to ${contact.name}:`, error.message);

@@ -43,7 +43,7 @@ router.get('/', authenticateToken, async (req: AuthRequest, res) => {
 
 router.post('/', authenticateToken, upload.single('mediaFile'), async (req: AuthRequest, res) => {
   try {
-    const { name, messageTemplate, contactIds, messageType = 'text' } = req.body;
+    const { name, messageTemplate, contactIds, messageType = 'text', minDelay = '3', maxDelay = '6' } = req.body;
     const mediaFile = req.file;
 
     if (!contactIds || JSON.parse(contactIds).length === 0) {
@@ -93,8 +93,19 @@ router.post('/', authenticateToken, upload.single('mediaFile'), async (req: Auth
     });
 
     const mediaPath = mediaFile ? mediaFile.path : undefined;
+    const minDelayNum = Math.max(1, Math.min(30, parseInt(minDelay)));
+    const maxDelayNum = Math.max(1, Math.min(30, parseInt(maxDelay)));
 
-    sendBulkMessages(req.userId!, campaign.id, parsedContactIds, messageTemplate, messageType, mediaPath).catch(error => {
+    sendBulkMessages(
+      req.userId!, 
+      campaign.id, 
+      parsedContactIds, 
+      messageTemplate, 
+      messageType, 
+      mediaPath,
+      minDelayNum,
+      maxDelayNum
+    ).catch(error => {
       console.error('Campaign error:', error.message);
     });
 

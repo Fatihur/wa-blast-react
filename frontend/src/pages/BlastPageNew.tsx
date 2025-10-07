@@ -9,7 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import RichTextEditor from '@/components/RichTextEditor';
-import { Send, Image, Video, FileText, X, CheckCircle, XCircle, Clock } from 'lucide-react';
+import { Send, Image, Video, FileText, X, CheckCircle, XCircle, Clock, Users, Search } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 export default function BlastPageNew() {
   const [campaignName, setCampaignName] = useState('');
@@ -20,6 +21,10 @@ export default function BlastPageNew() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [currentCampaignId, setCurrentCampaignId] = useState<string | null>(null);
   const [progress, setProgress] = useState<any>(null);
+  const [showContactModal, setShowContactModal] = useState(false);
+  const [contactSearch, setContactSearch] = useState('');
+  const [minDelay, setMinDelay] = useState(3);
+  const [maxDelay, setMaxDelay] = useState(6);
 
   const { data: contacts } = useQuery({
     queryKey: ['contacts'],
@@ -44,15 +49,20 @@ export default function BlastPageNew() {
     const interval = setInterval(async () => {
       try {
         const response = await api.get(`/campaigns/${currentCampaignId}/progress`);
-        setProgress(response.data);
+        const data = response.data;
+        setProgress(data);
         
-        // Stop polling when complete
-        if (response.data.percentage >= 100) {
+        // Stop when all messages processed (success + failed >= total)
+        if (data.total > 0 && (data.success + data.failed >= data.total)) {
           clearInterval(interval);
-          toast.success('Campaign completed!');
-          setCurrentCampaignId(null);
+          toast.success(`Campaign completed! ${data.success} sent, ${data.failed} failed`);
+          setTimeout(() => {
+            setCurrentCampaignId(null);
+            setProgress(null);
+          }, 3000);
         }
       } catch (error) {
+        console.error('Failed to fetch progress:', error);
         clearInterval(interval);
       }
     }, 2000);
@@ -103,6 +113,8 @@ export default function BlastPageNew() {
     formData.append('messageTemplate', message.trim());
     formData.append('contactIds', JSON.stringify(selectedContacts));
     formData.append('messageType', messageType);
+    formData.append('minDelay', minDelay.toString());
+    formData.append('maxDelay', maxDelay.toString());
     
     if (mediaFile) {
       formData.append('mediaFile', mediaFile);
@@ -311,6 +323,38 @@ export default function BlastPageNew() {
               </select>
             </div>
 
+            {/* Delay Settings */}
+            <div className="space-y-2">
+              <Label>Delay Between Messages (seconds)</Label>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={minDelay}
+                    onChange={(e) => setMinDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 1)))}
+                    placeholder="Min"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Min: 1-30s</p>
+                </div>
+                <div>
+                  <Input
+                    type="number"
+                    min="1"
+                    max="30"
+                    value={maxDelay}
+                    onChange={(e) => setMaxDelay(Math.max(1, Math.min(30, parseInt(e.target.value) || 6)))}
+                    placeholder="Max"
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">Max: 1-30s</p>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Random delay between {minDelay}-{maxDelay} seconds to avoid detection
+              </p>
+            </div>
+
             {/* Send Button */}
             <Button 
               onClick={handleSend} 
@@ -334,49 +378,111 @@ export default function BlastPageNew() {
           </CardContent>
         </Card>
 
-        {/* Contact Selection */}
+        {/* Contact Selection - Button to open modal */}
         <Card className="shadow-lg">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Select Contacts</CardTitle>
-                <CardDescription>Choose recipients for your message</CardDescription>
+            <CardTitle>Select Contacts</CardTitle>
+            <CardDescription>Choose recipients for your message</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowContactModal(true)}
+              className="w-full h-20 text-lg"
+            >
+              <Users className="h-5 w-5 mr-2" />
+              {selectedContacts.length > 0 
+                ? `${selectedContacts.length} Contact${selectedContacts.length > 1 ? 's' : ''} Selected`
+                : 'Click to Select Contacts'}
+            </Button>
+
+            {selectedContacts.length > 0 && (
+              <div className="p-4 bg-primary/10 rounded-lg">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-sm font-semibold">
+                    {selectedContacts.length} contact{selectedContacts.length > 1 ? 's' : ''} selected
+                  </p>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    onClick={() => setSelectedContacts([])}
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Click button above to change selection
+                </p>
               </div>
-              <Button variant="outline" size="sm" onClick={selectAll}>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Contact Selection Modal */}
+        <Dialog open={showContactModal} onOpenChange={setShowContactModal}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+            <DialogHeader>
+              <DialogTitle>Select Contacts</DialogTitle>
+            </DialogHeader>
+            
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input 
+                  placeholder="Search by name or phone..."
+                  value={contactSearch}
+                  onChange={(e) => setContactSearch(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+              <Button size="sm" variant="outline" onClick={selectAll}>
                 Select All
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2 max-h-[600px] overflow-y-auto">
-              {contacts?.map((contact: any) => (
-                <label
-                  key={contact.id}
-                  className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent/50 transition-all"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedContacts.includes(contact.id)}
-                    onChange={() => toggleContact(contact.id)}
-                    className="w-4 h-4"
-                  />
-                  <div className="flex-1">
-                    <p className="font-medium">{contact.name}</p>
-                    <p className="text-sm text-muted-foreground font-mono">{contact.phone}</p>
-                  </div>
-                  {contact.group && (
-                    <Badge variant="outline">{contact.group}</Badge>
-                  )}
-                </label>
-              ))}
+
+            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+              {contacts
+                ?.filter((c: any) => 
+                  c.name.toLowerCase().includes(contactSearch.toLowerCase()) ||
+                  c.phone.includes(contactSearch)
+                )
+                .map((contact: any) => (
+                  <label
+                    key={contact.id}
+                    className="flex items-center gap-3 p-3 border rounded-lg cursor-pointer hover:bg-accent transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedContacts.includes(contact.id)}
+                      onChange={() => toggleContact(contact.id)}
+                      className="w-4 h-4"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium truncate">{contact.name}</p>
+                      <p className="text-sm text-muted-foreground font-mono">{contact.phone}</p>
+                    </div>
+                    {contact.group && (
+                      <Badge variant="outline">{contact.group}</Badge>
+                    )}
+                  </label>
+                ))}
             </div>
-            <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-              <p className="text-sm font-semibold text-center">
-                Selected: {selectedContacts.length} / {contacts?.length || 0} contacts
+
+            <div className="flex items-center justify-between pt-4 border-t">
+              <p className="text-sm text-muted-foreground">
+                {selectedContacts.length} of {contacts?.length || 0} selected
               </p>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => setShowContactModal(false)}>
+                  Cancel
+                </Button>
+                <Button onClick={() => setShowContactModal(false)}>
+                  Done
+                </Button>
+              </div>
             </div>
-          </CardContent>
-        </Card>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

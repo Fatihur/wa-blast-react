@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogTrigger } from '@/components/ui/dialog';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+
 import { Badge } from '@/components/ui/badge';
 import { Plus, Upload, Trash2, Edit, Users, Search } from 'lucide-react';
 
@@ -145,13 +145,6 @@ export default function ContactsPageNew() {
     ? contacts 
     : contacts?.filter((c: Contact) => c.group === selectedGroup);
 
-  const contactsByGroup = contacts?.reduce((acc: any, contact: Contact) => {
-    const group = contact.group || 'Ungrouped';
-    if (!acc[group]) acc[group] = [];
-    acc[group].push(contact);
-    return acc;
-  }, {});
-
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -238,154 +231,94 @@ export default function ContactsPageNew() {
         </div>
       </div>
 
-      {/* Tabs */}
-      <Tabs value={selectedGroup === 'all' ? 'all' : selectedGroup} onValueChange={setSelectedGroup}>
-        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex">
-          <TabsTrigger value="all" className="gap-2">
-            <Users className="h-4 w-4" />
-            All Contacts
-            <Badge variant="secondary">{contacts?.length || 0}</Badge>
-          </TabsTrigger>
-          {groups?.slice(0, 3).map((group: string) => (
-            <TabsTrigger key={group} value={group} className="gap-2">
-              {group}
-              <Badge variant="secondary">
-                {contacts?.filter((c: Contact) => c.group === group).length || 0}
-              </Badge>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {/* All Contacts Tab */}
-        <TabsContent value="all" className="space-y-4">
-          <Card className="shadow-lg">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  All Contacts
-                </CardTitle>
-                <div className="relative w-64">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search contacts..."
-                    className="pl-9"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                  />
-                </div>
+      {/* Contacts Card */}
+      <Card className="shadow-lg">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              {selectedGroup === 'all' ? 'All Contacts' : selectedGroup}
+              <Badge variant="secondary">{filteredContacts?.length || 0}</Badge>
+            </CardTitle>
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              <div className="relative flex-1 sm:w-64">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search contacts..."
+                  className="pl-9"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
               </div>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
-              ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead>Group</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredContacts?.map((contact: Contact) => (
-                      <TableRow key={contact.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{contact.name}</TableCell>
-                        <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
-                        <TableCell>
-                          {contact.group ? (
-                            <Badge variant="outline">{contact.group}</Badge>
-                          ) : (
-                            <span className="text-muted-foreground">-</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditModal(contact)}
-                              className="hover:bg-primary/10"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteContactMutation.mutate(contact.id)}
-                              className="hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        {/* Group Tabs */}
-        {groups?.map((group: string) => (
-          <TabsContent key={group} value={group} className="space-y-4">
-            <Card className="shadow-lg">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  {group}
-                  <Badge variant="secondary">
-                    {contactsByGroup?.[group]?.length || 0} contacts
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Phone</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {contactsByGroup?.[group]?.map((contact: Contact) => (
-                      <TableRow key={contact.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{contact.name}</TableCell>
-                        <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditModal(contact)}
-                              className="hover:bg-primary/10"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteContactMutation.mutate(contact.id)}
-                              className="hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        ))}
-      </Tabs>
+              <select
+                className="px-3 py-2 border rounded-md bg-background text-sm"
+                value={selectedGroup}
+                onChange={(e) => setSelectedGroup(e.target.value)}
+              >
+                <option value="all">All Groups ({contacts?.length || 0})</option>
+                {groups?.map((group: string) => (
+                  <option key={group} value={group}>
+                    {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <p className="text-center text-muted-foreground py-8">Loading contacts...</p>
+          ) : filteredContacts?.length === 0 ? (
+            <p className="text-center text-muted-foreground py-8">No contacts found</p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Group</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredContacts?.map((contact: Contact) => (
+                  <TableRow key={contact.id} className="hover:bg-muted/50">
+                    <TableCell className="font-medium">{contact.name}</TableCell>
+                    <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
+                    <TableCell>
+                      {contact.group ? (
+                        <Badge variant="outline">{contact.group}</Badge>
+                      ) : (
+                        <span className="text-muted-foreground text-sm">No group</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => openEditModal(contact)}
+                          className="hover:bg-primary/10"
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => deleteContactMutation.mutate(contact.id)}
+                          className="hover:bg-destructive/10 hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
