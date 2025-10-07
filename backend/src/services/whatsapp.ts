@@ -123,6 +123,22 @@ function normalizePhoneNumber(phone: string): string {
   return normalized + '@s.whatsapp.net';
 }
 
+function getMimeType(filename: string): string {
+  const path = require('path');
+  const ext = path.extname(filename).toLowerCase();
+  const mimeTypes: Record<string, string> = {
+    '.pdf': 'application/pdf',
+    '.doc': 'application/msword',
+    '.docx': 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    '.xls': 'application/vnd.ms-excel',
+    '.xlsx': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    '.txt': 'text/plain',
+    '.zip': 'application/zip',
+    '.rar': 'application/x-rar-compressed',
+  };
+  return mimeTypes[ext] || 'application/octet-stream';
+}
+
 export async function getSession(userId: string): Promise<WASocket | null> {
   return sessions.get(userId) || null;
 }
@@ -170,6 +186,19 @@ export async function sendBulkMessages(
 
     console.log(`Starting bulk send for campaign ${campaignId}: ${contacts.length} contacts`);
 
+    // Read media file ONCE before loop to avoid re-reading for each contact
+    let mediaBuffer: Buffer | undefined;
+    if (mediaPath && messageType !== 'text') {
+      const fs = require('fs');
+      try {
+        mediaBuffer = fs.readFileSync(mediaPath);
+        console.log(`Media file loaded: ${mediaPath} (${mediaBuffer.length} bytes)`);
+      } catch (error) {
+        console.error(`Failed to read media file: ${mediaPath}`, error);
+        throw new Error('Failed to read media file');
+      }
+    }
+
     for (const contact of contacts) {
       try {
         const personalizedMessage = messageTemplate.replace(/\{\{nama\}\}/g, contact.name).replace(/<[^>]*>/g, '');
@@ -179,17 +208,17 @@ export async function sendBulkMessages(
         
         if (messageType === 'text') {
           await sock.sendMessage(jid, { text: personalizedMessage });
-        } else if (mediaPath) {
-          const fs = require('fs');
+        } else if (mediaBuffer) {
           const messageOptions: any = { caption: personalizedMessage };
           
           if (messageType === 'image') {
-            messageOptions.image = fs.readFileSync(mediaPath);
+            messageOptions.image = mediaBuffer;
           } else if (messageType === 'video') {
-            messageOptions.video = fs.readFileSync(mediaPath);
+            messageOptions.video = mediaBuffer;
           } else if (messageType === 'document') {
-            messageOptions.document = fs.readFileSync(mediaPath);
-            messageOptions.fileName = require('path').basename(mediaPath);
+            messageOptions.document = mediaBuffer;
+            messageOptions.fileName = require('path').basename(mediaPath!);
+            messageOptions.mimetype = getMimeType(mediaPath!);
           }
           
           await sock.sendMessage(jid, messageOptions);

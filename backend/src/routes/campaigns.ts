@@ -54,6 +54,36 @@ router.post('/', authenticateToken, upload.single('mediaFile'), async (req: Auth
       return res.status(400).json({ error: 'Message template is required' });
     }
 
+    const parsedContactIds = JSON.parse(contactIds);
+
+    // Check daily quota limit
+    const user = await prisma.user.findUnique({
+      where: { id: req.userId },
+      select: { quotaLimit: true }
+    });
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const sentToday = await prisma.message.count({
+      where: {
+        userId: req.userId,
+        createdAt: { gte: today },
+        status: { in: ['success', 'pending'] }
+      }
+    });
+
+    const remainingQuota = user!.quotaLimit - sentToday;
+
+    if (parsedContactIds.length > remainingQuota) {
+      return res.status(403).json({ 
+        error: `Daily quota exceeded. You have sent ${sentToday}/${user!.quotaLimit} messages today. Remaining: ${remainingQuota}. This campaign requires ${parsedContactIds.length} messages.`,
+        sentToday,
+        quotaLimit: user!.quotaLimit,
+        remainingQuota
+      });
+    }
+
     const campaign = await prisma.campaign.create({
       data: {
         userId: req.userId!,
@@ -62,7 +92,6 @@ router.post('/', authenticateToken, upload.single('mediaFile'), async (req: Auth
       }
     });
 
-    const parsedContactIds = JSON.parse(contactIds);
     const mediaPath = mediaFile ? mediaFile.path : undefined;
 
     sendBulkMessages(req.userId!, campaign.id, parsedContactIds, messageTemplate, messageType, mediaPath).catch(error => {
@@ -72,7 +101,7 @@ router.post('/', authenticateToken, upload.single('mediaFile'), async (req: Auth
     res.status(201).json({ 
       message: 'Campaign started successfully', 
       campaign,
-      status: 'Messages are being sent in background. Check dashboard for progress.'
+      status: `Messages are being sent in background. ${parsedContactIds.length} messages will be sent. Daily quota: ${sentToday + parsedContactIds.length}/${user!.quotaLimit}`
     });
   } catch (error: any) {
     console.error('Campaign creation error:', error);

@@ -27,6 +27,16 @@ export default function ContactsPageNew() {
   const [selectedGroup, setSelectedGroup] = useState<string>('all');
   const queryClient = useQueryClient();
 
+  const formatPhoneNumber = (phone: string): string => {
+    let cleaned = phone.replace(/\D/g, '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '62' + cleaned.substring(1);
+    } else if (!cleaned.startsWith('62')) {
+      cleaned = '62' + cleaned;
+    }
+    return cleaned;
+  };
+
   const { data: contacts, isLoading } = useQuery({
     queryKey: ['contacts', searchTerm],
     queryFn: async () => {
@@ -104,10 +114,18 @@ export default function ContactsPageNew() {
   };
 
   const handleSaveContact = () => {
+    if (!newContact.name.trim() || !newContact.phone.trim()) {
+      toast.error('Please fill name and phone');
+      return;
+    }
+
+    const formattedPhone = formatPhoneNumber(newContact.phone);
+    const contactData = { ...newContact, phone: formattedPhone };
+
     if (editContact) {
-      updateContactMutation.mutate({ id: editContact.id, data: newContact });
+      updateContactMutation.mutate({ id: editContact.id, data: contactData });
     } else {
-      addContactMutation.mutate(newContact);
+      addContactMutation.mutate(contactData);
     }
   };
 
@@ -185,11 +203,17 @@ export default function ContactsPageNew() {
                   <Label htmlFor="phone">Phone Number</Label>
                   <Input
                     id="phone"
-                    placeholder="628123456789"
+                    placeholder="08123456789 or 628123456789"
                     value={newContact.phone}
                     onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                    onBlur={(e) => {
+                      const formatted = formatPhoneNumber(e.target.value);
+                      setNewContact({ ...newContact, phone: formatted });
+                    }}
                   />
-                  <p className="text-xs text-muted-foreground">Format: 628xxx (Indonesia)</p>
+                  <p className="text-xs text-muted-foreground">
+                    Will auto-format to: 628xxx
+                  </p>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="group">Group (Optional)</Label>
