@@ -11,7 +11,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Upload, Trash2, Edit, Users, Search, FolderOpen, Check, ChevronDown, X } from 'lucide-react';
+import { Plus, Upload, Trash2, Edit, Users, Search, FolderOpen, Check, ChevronDown, X, ChevronLeft, ChevronRight, Download } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface Contact {
   id: string;
@@ -32,6 +33,14 @@ export default function ContactsPageNew() {
   const [deleteGroupName, setDeleteGroupName] = useState<string | null>(null);
   const [showGroupDropdown, setShowGroupDropdown] = useState(false);
   const [groupSearchTerm, setGroupSearchTerm] = useState('');
+  
+  // Pagination & Bulk Actions
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(10);
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [showBulkGroupModal, setShowBulkGroupModal] = useState(false);
+  const [bulkGroupName, setBulkGroupName] = useState('');
+  
   const queryClient = useQueryClient();
 
   const formatPhoneNumber = (phone: string): string => {
@@ -220,9 +229,111 @@ export default function ContactsPageNew() {
     setNewGroupName('');
   };
 
+  // Bulk Actions
+  const bulkDeleteMutation = useMutation({
+    mutationFn: async (ids: string[]) => {
+      return await Promise.all(ids.map(id => api.delete(`/contacts/${id}`)));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast.success(`${selectedContacts.length} kontak berhasil dihapus`);
+      setSelectedContacts([]);
+    },
+    onError: () => {
+      toast.error('Gagal menghapus kontak');
+    }
+  });
+
+  const bulkAssignGroupMutation = useMutation({
+    mutationFn: async ({ ids, group }: { ids: string[]; group: string }) => {
+      return await Promise.all(ids.map(id => api.put(`/contacts/${id}`, { group })));
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['contacts'] });
+      queryClient.invalidateQueries({ queryKey: ['groups'] });
+      toast.success(`${selectedContacts.length} kontak berhasil dipindahkan ke grup`);
+      setSelectedContacts([]);
+      setShowBulkGroupModal(false);
+      setBulkGroupName('');
+    },
+    onError: () => {
+      toast.error('Gagal memindahkan kontak ke grup');
+    }
+  });
+
+  const handleBulkDelete = () => {
+    if (selectedContacts.length === 0) return;
+    if (confirm(`Hapus ${selectedContacts.length} kontak yang dipilih?`)) {
+      bulkDeleteMutation.mutate(selectedContacts);
+    }
+  };
+
+  const handleBulkAssignGroup = () => {
+    if (!bulkGroupName.trim()) {
+      toast.error('Pilih grup terlebih dahulu');
+      return;
+    }
+    bulkAssignGroupMutation.mutate({ ids: selectedContacts, group: bulkGroupName });
+  };
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      const allIds = paginatedContacts?.map((c: Contact) => c.id) || [];
+      setSelectedContacts(allIds);
+    } else {
+      setSelectedContacts([]);
+    }
+  };
+
+  const handleSelectContact = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedContacts([...selectedContacts, id]);
+    } else {
+      setSelectedContacts(selectedContacts.filter(cid => cid !== id));
+    }
+  };
+
+  const handleExport = () => {
+    if (!filteredContacts || filteredContacts.length === 0) {
+      toast.error('Tidak ada kontak untuk diekspor');
+      return;
+    }
+
+    const csvContent = [
+      ['Nama', 'Telepon', 'Grup'],
+      ...filteredContacts.map((c: Contact) => [c.name, c.phone, c.group || ''])
+    ].map(row => row.join(',')).join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `kontak_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    toast.success('Kontak berhasil diekspor');
+  };
+
+  // Pagination
   const filteredContacts = selectedGroup === 'all' 
     ? contacts 
     : contacts?.filter((c: Contact) => c.group === selectedGroup);
+
+  const totalItems = filteredContacts?.length || 0;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const endIndex = startIndex + itemsPerPage;
+  const paginatedContacts = filteredContacts?.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    setSelectedContacts([]);
+  };
+
+  const handleItemsPerPageChange = (value: string) => {
+    setItemsPerPage(Number(value));
+    setCurrentPage(1);
+    setSelectedContacts([]);
+  };
 
   return (
     <div className="space-y-6">
@@ -276,35 +387,75 @@ export default function ContactsPageNew() {
           {/* Contacts Card */}
           <Card className="shadow-lg">
             <CardHeader>
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5" />
-                  {selectedGroup === 'all' ? 'Semua Kontak' : selectedGroup}
-                  <Badge variant="secondary">{filteredContacts?.length || 0}</Badge>
-                </CardTitle>
-                <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                  <div className="relative flex-1 sm:w-64">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Cari kontak..."
-                      className="pl-9"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    {selectedGroup === 'all' ? 'Semua Kontak' : selectedGroup}
+                    <Badge variant="secondary">{totalItems}</Badge>
+                  </CardTitle>
+                  <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    <div className="relative flex-1 sm:w-64">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Cari kontak..."
+                        className="pl-9"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                      />
+                    </div>
+                    <select
+                      className="px-3 py-2 border rounded-md bg-background text-sm"
+                      value={selectedGroup}
+                      onChange={(e) => setSelectedGroup(e.target.value)}
+                    >
+                      <option value="all">Semua Grup ({contacts?.length || 0})</option>
+                      {groups?.map((group: string) => (
+                        <option key={group} value={group}>
+                          {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
+                        </option>
+                      ))}
+                    </select>
                   </div>
-                  <select
-                    className="px-3 py-2 border rounded-md bg-background text-sm"
-                    value={selectedGroup}
-                    onChange={(e) => setSelectedGroup(e.target.value)}
-                  >
-                    <option value="all">Semua Grup ({contacts?.length || 0})</option>
-                    {groups?.map((group: string) => (
-                      <option key={group} value={group}>
-                        {group} ({contacts?.filter((c: Contact) => c.group === group).length || 0})
-                      </option>
-                    ))}
-                  </select>
                 </div>
+
+                {/* Bulk Actions */}
+                {selectedContacts.length > 0 && (
+                  <div className="flex items-center gap-2 p-3 bg-primary/5 rounded-lg border border-primary/20">
+                    <span className="text-sm font-medium">
+                      {selectedContacts.length} kontak dipilih
+                    </span>
+                    <div className="flex gap-2 ml-auto">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowBulkGroupModal(true)}
+                        className="gap-2"
+                      >
+                        <FolderOpen className="h-4 w-4" />
+                        Pindah ke Grup
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={handleExport}
+                        className="gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Ekspor
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleBulkDelete}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Hapus
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </CardHeader>
             <CardContent>
@@ -313,51 +464,141 @@ export default function ContactsPageNew() {
               ) : filteredContacts?.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">Tidak ada kontak</p>
               ) : (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Nama</TableHead>
-                      <TableHead>Telepon</TableHead>
-                      <TableHead>Grup</TableHead>
-                      <TableHead className="text-right">Aksi</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredContacts?.map((contact: Contact) => (
-                      <TableRow key={contact.id} className="hover:bg-muted/50">
-                        <TableCell className="font-medium">{contact.name}</TableCell>
-                        <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
-                        <TableCell>
-                          {contact.group ? (
-                            <Badge variant="outline">{contact.group}</Badge>
-                          ) : (
-                            <span className="text-muted-foreground text-sm">Tanpa grup</span>
-                          )}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => openEditModal(contact)}
-                              className="hover:bg-primary/10"
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() => deleteContactMutation.mutate(contact.id)}
-                              className="hover:bg-destructive/10 hover:text-destructive"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
+                <>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12">
+                          <input
+                            type="checkbox"
+                            checked={selectedContacts.length === paginatedContacts?.length && paginatedContacts?.length > 0}
+                            onChange={(e) => handleSelectAll(e.target.checked)}
+                            className="w-4 h-4 rounded border-gray-300"
+                          />
+                        </TableHead>
+                        <TableHead>Nama</TableHead>
+                        <TableHead>Telepon</TableHead>
+                        <TableHead>Grup</TableHead>
+                        <TableHead className="text-right">Aksi</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+                    </TableHeader>
+                    <TableBody>
+                      {paginatedContacts?.map((contact: Contact) => (
+                        <TableRow key={contact.id} className="hover:bg-muted/50">
+                          <TableCell>
+                            <input
+                              type="checkbox"
+                              checked={selectedContacts.includes(contact.id)}
+                              onChange={(e) => handleSelectContact(contact.id, e.target.checked)}
+                              className="w-4 h-4 rounded border-gray-300"
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">{contact.name}</TableCell>
+                          <TableCell className="font-mono text-sm">{contact.phone}</TableCell>
+                          <TableCell>
+                            {contact.group ? (
+                              <Badge variant="outline">{contact.group}</Badge>
+                            ) : (
+                              <span className="text-muted-foreground text-sm">Tanpa grup</span>
+                            )}
+                          </TableCell>
+                          <TableCell className="text-right">
+                            <div className="flex justify-end gap-2">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => openEditModal(contact)}
+                                className="hover:bg-primary/10"
+                              >
+                                <Edit className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => deleteContactMutation.mutate(contact.id)}
+                                className="hover:bg-destructive/10 hover:text-destructive"
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+
+                  {/* Pagination */}
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mt-4 pt-4 border-t">
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Tampilkan</span>
+                      <Select value={itemsPerPage.toString()} onValueChange={handleItemsPerPageChange}>
+                        <SelectTrigger className="w-20">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="10">10</SelectItem>
+                          <SelectItem value="25">25</SelectItem>
+                          <SelectItem value="50">50</SelectItem>
+                          <SelectItem value="100">100</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <span>dari {totalItems} kontak</span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage - 1)}
+                        disabled={currentPage === 1}
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Sebelumnya
+                      </Button>
+                      
+                      <div className="flex items-center gap-1">
+                        {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                          let pageNum;
+                          if (totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (currentPage >= totalPages - 2) {
+                            pageNum = totalPages - 4 + i;
+                          } else {
+                            pageNum = currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              className="w-9 h-9"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(currentPage + 1)}
+                        disabled={currentPage === totalPages}
+                      >
+                        Berikutnya
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
+                    </div>
+
+                    <div className="text-sm text-muted-foreground">
+                      Halaman {currentPage} dari {totalPages}
+                    </div>
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -668,6 +909,53 @@ export default function ContactsPageNew() {
               onClick={() => deleteGroupName && deleteGroupMutation.mutate(deleteGroupName)}
             >
               Hapus Grup
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Bulk Assign Group Modal */}
+      <Dialog open={showBulkGroupModal} onOpenChange={setShowBulkGroupModal}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="text-2xl">Pindahkan ke Grup</DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-sm text-muted-foreground mb-4">
+              Pindahkan {selectedContacts.length} kontak yang dipilih ke grup:
+            </p>
+            <div className="space-y-2">
+              <Label htmlFor="bulk-group">Pilih Grup</Label>
+              <select
+                id="bulk-group"
+                className="w-full px-3 py-2 border rounded-md bg-background"
+                value={bulkGroupName}
+                onChange={(e) => setBulkGroupName(e.target.value)}
+              >
+                <option value="">-- Pilih Grup --</option>
+                {groups?.map((group: string) => (
+                  <option key={group} value={group}>
+                    {group}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowBulkGroupModal(false);
+                setBulkGroupName('');
+              }}
+            >
+              Batal
+            </Button>
+            <Button 
+              onClick={handleBulkAssignGroup}
+              disabled={!bulkGroupName.trim()}
+            >
+              Pindahkan
             </Button>
           </DialogFooter>
         </DialogContent>
