@@ -56,6 +56,17 @@ router.post('/', authenticateToken, upload.single('mediaFile'), async (req: Auth
 
     const parsedContactIds = JSON.parse(contactIds);
 
+    // CHECK WhatsApp connection BEFORE creating campaign
+    const { getSession } = require('../services/whatsapp');
+    const session = await getSession(req.userId);
+    
+    if (!session) {
+      return res.status(400).json({ 
+        error: 'WhatsApp tidak terhubung. Silakan hubungkan WhatsApp terlebih dahulu.',
+        code: 'WHATSAPP_NOT_CONNECTED'
+      });
+    }
+
     // Check daily quota limit
     const user = await prisma.user.findUnique({
       where: { id: req.userId },
